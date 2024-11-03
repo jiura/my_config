@@ -1,27 +1,6 @@
 vim.opt.exrc = true --- allowing execution of project .nvim.lua
 vim.opt.termguicolors = true --- activating richer colors
 
-local autocmd = vim.api.nvim_create_autocmd
-
--- starting language server clients
---[[autocmd("FileType", {
-	pattern = "go",
-	callback = function()
-		local client = vim.lsp.start({
-			name = "gopls",
-			cmd = { "gopls" },
-			root_dir = vim.fs.dirname(vim.fs.find({ "go.mod", "go.work" }, { upward = true })[1]),
-		})
-		vim.lsp.buf_attach_client(0, client)
-		vim.keymap.set("n", "<C-h>", function()
-			vim.lsp.buf.hover()
-		end)
-	end,
-})--]]
-
--- showing line number
---vim.wo.number = true
-
 -- KICKSTART
 
 -- Set <space> as the leader key
@@ -42,7 +21,7 @@ vim.g.have_nerd_font = false
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
---vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = "a"
@@ -66,7 +45,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 
 -- Keep signcolumn on by default
-vim.opt.signcolumn = "yes"
+vim.opt.signcolumn = "no"
 
 -- Decrease update time
 vim.opt.updatetime = 250
@@ -485,8 +464,6 @@ require("lazy").setup({
 			--  - settings (table): Override the default settings passed when initializing the server.
 			--        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
 			local servers = {
-				-- clangd = {},
-				-- gopls = {},
 				-- pyright = {},
 				-- rust_analyzer = {},
 				-- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -497,7 +474,10 @@ require("lazy").setup({
 				-- But for many setups, the LSP (`tsserver`) will work just fine
 				-- tsserver = {},
 				--
-
+				clangd = {},
+				gopls = {},
+				csharp_ls = {},
+				templ = {},
 				lua_ls = {
 					-- cmd = {...},
 					-- filetypes = { ...},
@@ -509,9 +489,13 @@ require("lazy").setup({
 							},
 							-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
 							-- diagnostics = { disable = { 'missing-fields' } },
+							diagnostics = {
+								globals = { "vim" },
+							},
 						},
 					},
 				},
+				zls = {},
 			}
 
 			-- Ensure the servers and tools above are installed
@@ -649,7 +633,7 @@ require("lazy").setup({
 					-- Accept ([y]es) the completion.
 					--  This will auto-import if your LSP supports it.
 					--  This will expand snippets if the LSP sent a snippet.
-					["<C-y>"] = cmp.mapping.confirm({ select = true }),
+					["<C-a>"] = cmp.mapping.confirm({ select = true }), -- NOTE:(joao) change this from C-y to C-a (as in "[A]ccept")
 
 					-- If you prefer more traditional completion keymaps,
 					-- you can uncomment the following lines
@@ -839,23 +823,147 @@ require("lazy").setup({
 
 -- MY STUFF
 
--- setting my keymaps
-vim.keymap.set("i", "<C-_>", "<C-w>") -- forgot what this is, probably ctrl + backspace
+-- setting my keymaps --
 
+--- movement
 vim.keymap.set({ "n", "v" }, "<C-Up>", "{") -- ctrl + up or down == go up/down paragraph
 vim.keymap.set({ "n", "v" }, "<C-Down>", "}")
 vim.keymap.set("i", "<C-Up>", "<C-o>{")
 vim.keymap.set("i", "<C-Down>", "<C-o>}")
 
-vim.keymap.set({ "n", "v" }, "<C-Left>", "b") -- ctrl + left or right == go back/forward words
+vim.keymap.set({ "n", "v" }, "<C-Left>", function() -- ctrl + left or right == go back/forward words
+	local original_line_num = vim.api.nvim_win_get_cursor(0)[1]
+	vim.api.nvim_feedkeys("B", "n", false)
+	local new_line_num
+	vim.defer_fn(function()
+		new_line_num = vim.api.nvim_win_get_cursor(0)[1]
+		print(original_line_num, new_line_num)
+		if new_line_num ~= original_line_num then
+			vim.api.nvim_feedkeys("$", "n", false)
+		end
+	end, 1)
+end)
 vim.keymap.set({ "n", "v" }, "<C-Right>", "w")
-vim.keymap.set("i", "<C-Left>", "<C-o>b")
+vim.keymap.set("i", "<C-Left>", function() -- ctrl + left or right == go back/forward words
+	local original_line_num = vim.api.nvim_win_get_cursor(0)[1]
+	local keys = vim.api.nvim_replace_termcodes("<C-o>B", false, false, true)
+	vim.api.nvim_feedkeys(keys, "n", true)
+	local new_line_num
+	vim.defer_fn(function()
+		new_line_num = vim.api.nvim_win_get_cursor(0)[1]
+		if new_line_num ~= original_line_num then
+			keys = vim.api.nvim_replace_termcodes("<C-o>$", false, false, true)
+			vim.api.nvim_feedkeys(keys, "n", true)
+		end
+	end, 1)
+end)
 vim.keymap.set("i", "<C-Right>", "<C-o>w")
 
--- setting my global vars
+vim.keymap.set({ "n", "v" }, "<Leader>1", "0", { desc = "start of line" }) -- go to start of line
 
+vim.keymap.set("n", "<Home>", "^")
+vim.keymap.set("i", "<Home>", "<C-o>^")
+
+--- editing
+
+vim.keymap.set("i", "<C-_>", "<C-w>") -- forgot what this is, probably ctrl + backspace
+vim.keymap.set("i", "<C-z>", "<C-o>u") -- CTRL-Z to undo while editing
+vim.keymap.set("n", "<BS>", "<Left>x") -- making backspace delete character before cursor
+vim.keymap.set("n", "x", '"_x') -- make it so x doesnt save deleted char to a register
+
+vim.keymap.set("n", "i", function() -- indent when inserting on blank line
+	if vim.api.nvim_get_current_line():match("^%s*$") then
+		vim.api.nvim_feedkeys("cc", "n", false)
+	else
+		vim.api.nvim_feedkeys("i", "n", false)
+	end
+end)
+vim.keymap.set("n", "<Insert>", function()
+	if vim.api.nvim_get_current_line():match("^%s*$") then
+		vim.api.nvim_feedkeys("cc", "n", false)
+	else
+		vim.api.nvim_feedkeys("i", "n", false)
+	end
+end)
+
+vim.keymap.set("i", "<CR>", function() -- makes <Enter> on insert mode indent correctly
+	if not vim.api.nvim_get_current_line():match("^%s*$") then
+		local col = vim.api.nvim_win_get_cursor(0)[2]
+		local keys
+		if vim.api.nvim_get_current_line():sub(1, col):match("^%s*$") then
+			keys = vim.api.nvim_replace_termcodes('<C-[>"dddO<C-[>"dpi', false, false, true)
+		else
+			keys = vim.api.nvim_replace_termcodes('<C-[>v^"ddhv0"tyO<C-[>"tp"dpjI', false, false, true)
+		end
+		vim.api.nvim_feedkeys(keys, "n", false)
+	else
+		local keys = vim.api.nvim_replace_termcodes("<CR>", false, false, true)
+		vim.api.nvim_feedkeys(keys, "n", false)
+	end
+end)
+
+--- misc
+vim.keymap.set("n", "<S-q>", "<cmd>w | qa<CR>", { desc = "save and quit all windows" })
+
+vim.g.term_buf_hidden = 0
+vim.keymap.set("n", "<C-w>t", function()
+	if vim.g.term_buf_hidden == 1 then
+		vim.api.nvim_exec("sp | winc 8- | buf term | startinsert", false)
+		vim.g.term_buf_hidden = 0
+	else
+		for _, win_handle in pairs(vim.api.nvim_list_wins()) do
+			if string.find(vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win_handle)), "term") then
+				vim.api.nvim_win_hide(win_handle)
+				vim.g.term_buf_hidden = 1
+				break
+			end
+		end
+	end
+end, { desc = "open/close [t]erminal buffer" })
+
+for i = 1, 3 do
+	vim.keymap.set("n", "<C-w>" .. i, function()
+		local win_handle = vim.api.nvim_list_wins()[i]
+		if win_handle ~= nil then
+			vim.api.nvim_set_current_win(win_handle)
+		else
+			print("Invalid window number!")
+		end
+	end, { desc = "open [w]indow " .. i })
+end
+
+vim.keymap.set("t", "<Esc>", "<C-\\><C-N>") -- leave terminal mode with only one Esc
+
+vim.keymap.set("n", "<leader>ts", function() -- toggle signs before line number
+	if vim.o.signcolumn == "no" then
+		vim.o.signcolumn = "yes"
+	else
+		vim.o.signcolumn = "no"
+	end
+end, { desc = "[t]oggle [s]igncolumn" })
+
+-- setting my configs --
+
+--- netrw configs
 vim.g.netrw_banner = 0
 vim.g.netrw_preview = 1
 vim.g.netrw_alto = 0
-vim.g.netrw_liststyle = 3
+vim.g.netrw_liststyle = 0
 vim.g.netrw_winsize = 85
+
+--- movement configs
+vim.o.whichwrap = "b,s,<,>,[,],h,l"
+
+-- adding extensions
+vim.filetype.add({ extension = { templ = "templ" } })
+
+-- defining startup autocmd
+vim.api.nvim_create_autocmd("VimEnter", {
+	desc = "Create and resize tabs for file tree and terminal",
+	group = vim.api.nvim_create_augroup("my-startup-cmds", { clear = true }),
+	pattern = "*",
+	callback = function()
+		vim.api.nvim_exec("vs | winc h | winc 16< | E | sp | terminal", false)
+		vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | winc l', false)
+	end,
+})
