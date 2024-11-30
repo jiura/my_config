@@ -837,14 +837,24 @@ vim.keymap.set({ "n", "v" }, "<C-Left>", function() -- ctrl + left or right == g
 	local new_line_num
 	vim.defer_fn(function()
 		new_line_num = vim.api.nvim_win_get_cursor(0)[1]
-		print(original_line_num, new_line_num)
 		if new_line_num ~= original_line_num then
 			vim.api.nvim_feedkeys("$", "n", false)
 		end
 	end, 1)
 end)
-vim.keymap.set({ "n", "v" }, "<C-Right>", "w")
-vim.keymap.set("i", "<C-Left>", function() -- ctrl + left or right == go back/forward words
+vim.keymap.set({ "n", "v" }, "<C-Right>", function()
+	local original_line_num = vim.api.nvim_win_get_cursor(0)[1]
+	vim.api.nvim_feedkeys("w", "n", false)
+	local new_line_num
+	vim.defer_fn(function()
+		new_line_num = vim.api.nvim_win_get_cursor(0)[1]
+		if new_line_num ~= original_line_num then
+			vim.api.nvim_feedkeys("0", "n", false)
+		end
+	end, 1)
+end)
+
+vim.keymap.set("i", "<C-Left>", function() -- ctrl + left or right == go back/forward words (include mode)
 	local original_line_num = vim.api.nvim_win_get_cursor(0)[1]
 	local keys = vim.api.nvim_replace_termcodes("<C-o>B", false, false, true)
 	vim.api.nvim_feedkeys(keys, "n", true)
@@ -857,7 +867,19 @@ vim.keymap.set("i", "<C-Left>", function() -- ctrl + left or right == go back/fo
 		end
 	end, 1)
 end)
-vim.keymap.set("i", "<C-Right>", "<C-o>w")
+vim.keymap.set("i", "<C-Right>", function() -- ctrl + left or right == go back/forward words (include mode)
+	local original_line_num = vim.api.nvim_win_get_cursor(0)[1]
+	local keys = vim.api.nvim_replace_termcodes("<C-o>w", false, false, true)
+	vim.api.nvim_feedkeys(keys, "n", true)
+	local new_line_num
+	vim.defer_fn(function()
+		new_line_num = vim.api.nvim_win_get_cursor(0)[1]
+		if new_line_num ~= original_line_num then
+			keys = vim.api.nvim_replace_termcodes("<C-o>0", false, false, true)
+			vim.api.nvim_feedkeys(keys, "n", true)
+		end
+	end, 1)
+end)
 
 vim.keymap.set({ "n", "v" }, "<Leader>1", "0", { desc = "start of line" }) -- go to start of line
 
@@ -870,6 +892,17 @@ vim.keymap.set("i", "<C-_>", "<C-w>") -- forgot what this is, probably ctrl + ba
 vim.keymap.set("i", "<C-z>", "<C-o>u") -- CTRL-Z to undo while editing
 vim.keymap.set("n", "<BS>", "<Left>x") -- making backspace delete character before cursor
 vim.keymap.set("n", "x", '"_x') -- make it so x doesnt save deleted char to a register
+
+vim.keymap.set("n", "<C-c>", function()
+	local current_line = vim.api.nvim_get_current_line()
+	local start_index = string.find(current_line, "//")
+	if start_index then
+		current_line = current_line:sub(start_index + 2)
+	else
+		current_line = "//" .. current_line
+	end
+	vim.api.nvim_set_current_line(current_line)
+end)
 
 vim.keymap.set("n", "i", function() -- indent when inserting on blank line
 	if vim.api.nvim_get_current_line():match("^%s*$") then
@@ -886,7 +919,7 @@ vim.keymap.set("n", "<Insert>", function()
 	end
 end)
 
-vim.keymap.set("i", "<CR>", function() -- makes <Enter> on insert mode indent correctly
+--[[vim.keymap.set("i", "<CR>", function() -- makes <Enter> on insert mode indent correctly
 	if not vim.api.nvim_get_current_line():match("^%s*$") then
 		local col = vim.api.nvim_win_get_cursor(0)[2]
 		local keys
@@ -900,7 +933,7 @@ vim.keymap.set("i", "<CR>", function() -- makes <Enter> on insert mode indent co
 		local keys = vim.api.nvim_replace_termcodes("<CR>", false, false, true)
 		vim.api.nvim_feedkeys(keys, "n", false)
 	end
-end)
+end)]]
 
 --- misc
 vim.keymap.set("n", "<S-q>", "<cmd>w | qa<CR>", { desc = "save and quit all windows" })
@@ -963,7 +996,9 @@ vim.api.nvim_create_autocmd("VimEnter", {
 	group = vim.api.nvim_create_augroup("my-startup-cmds", { clear = true }),
 	pattern = "*",
 	callback = function()
-		vim.api.nvim_exec("vs | winc h | winc 16< | E | sp | terminal", false)
-		vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | winc l', false)
+		--vim.api.nvim_exec("vs | winc h | winc 16< | E | sp | terminal", false)
+		vim.api.nvim_exec("sp | winc 8- | terminal", false)
+		--vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | winc l', false)
+		vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | winc k', false)
 	end,
 })
