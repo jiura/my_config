@@ -701,7 +701,13 @@ require("lazy").setup({
 		"folke/todo-comments.nvim",
 		event = "VimEnter",
 		dependencies = { "nvim-lua/plenary.nvim" },
-		opts = { signs = false },
+		opts = {
+			signs = false,
+			highlight = {
+				pattern = [[.*<(KEYWORDS).*\s]],
+				after = "fg",
+			},
+		},
 	},
 
 	{ -- Collection of various small independent plugins/modules
@@ -720,7 +726,17 @@ require("lazy").setup({
 			-- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
 			-- - sd'   - [S]urround [D]elete [']quotes
 			-- - sr)'  - [S]urround [R]eplace [)] [']
-			require("mini.surround").setup()
+			require("mini.surround").setup({
+				mappings = {
+					add = "<C-s>a", -- Add surrounding in Normal and Visual modes
+					delete = "<C-s>d", -- Delete surrounding
+					find = "<C-s>f", -- Find surrounding (to the right)
+					find_left = "<C-s>F", -- Find surrounding (to the left)
+					highlight = "<C-s>h", -- Highlight surrounding
+					replace = "<C-s>r", -- Replace surrounding
+					update_n_lines = "<C-s>n", -- Update `n_lines`
+				},
+			})
 
 			-- Simple and easy statusline.
 			--  You could remove this setup call if you don't like it,
@@ -796,6 +812,19 @@ require("lazy").setup({
 	--  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
 	--    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
 	-- { import = 'custom.plugins' },
+
+	{
+		"ggandor/leap.nvim",
+		opts = {},
+		config = function()
+			require("leap").create_default_mappings()
+		end,
+	},
+	{
+		"ThePrimeagen/harpoon",
+		branch = "harpoon2",
+		dependencies = { "nvim-lua/plenary.nvim" },
+	},
 }, {
 	ui = {
 		-- If you are using a Nerd Font: set icons to an empty table which will use the
@@ -833,7 +862,7 @@ vim.keymap.set("i", "<C-Down>", "<C-o>}")
 
 vim.keymap.set({ "n", "v" }, "<C-Left>", function() -- ctrl + left or right == go back/forward words
 	local original_line_num = vim.api.nvim_win_get_cursor(0)[1]
-	vim.api.nvim_feedkeys("B", "n", false)
+	vim.api.nvim_feedkeys("b", "n", false)
 	local new_line_num
 	vim.defer_fn(function()
 		new_line_num = vim.api.nvim_win_get_cursor(0)[1]
@@ -856,7 +885,7 @@ end)
 
 vim.keymap.set("i", "<C-Left>", function() -- ctrl + left or right == go back/forward words (include mode)
 	local original_line_num = vim.api.nvim_win_get_cursor(0)[1]
-	local keys = vim.api.nvim_replace_termcodes("<C-o>B", false, false, true)
+	local keys = vim.api.nvim_replace_termcodes("<C-o>b", false, false, true)
 	vim.api.nvim_feedkeys(keys, "n", true)
 	local new_line_num
 	vim.defer_fn(function()
@@ -990,15 +1019,73 @@ vim.o.whichwrap = "b,s,<,>,[,],h,l"
 -- adding extensions
 vim.filetype.add({ extension = { templ = "templ" } })
 
+-- terminal startup autocmd
+vim.api.nvim_create_autocmd("TermOpen", {
+	desc = "Configs terminal with cmderinit",
+	group = vim.api.nvim_create_augroup("my-term-cmds", { clear = true }),
+	pattern = "*",
+	callback = function()
+		vim.api.nvim_exec('winc 8- | call chansend(&channel, "cmderinit\\<CR>")', false)
+	end,
+})
+
 -- defining startup autocmd
 vim.api.nvim_create_autocmd("VimEnter", {
 	desc = "Create and resize tabs for file tree and terminal",
 	group = vim.api.nvim_create_augroup("my-startup-cmds", { clear = true }),
 	pattern = "*",
 	callback = function()
-		--vim.api.nvim_exec("vs | winc h | winc 16< | E | sp | terminal", false)
 		vim.api.nvim_exec("sp | winc 8- | terminal", false)
-		--vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | winc l', false)
 		vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | winc k', false)
 	end,
 })
+
+-- general options --
+vim.o.tabstop = 4
+vim.o.shiftwidth = 4
+
+-- plugins setup --
+
+-- harpoon
+local harpoon = require("harpoon")
+harpoon:setup()
+
+vim.keymap.set("n", "<leader>a", function()
+	harpoon:list():add()
+end, { desc = "Add to Harpoon" })
+vim.keymap.set("n", "<C-d>", function()
+	vim.api.nvim_command("write")
+	harpoon.ui:toggle_quick_menu(harpoon:list())
+end, { desc = "Harpoon quick menu" })
+
+-- basic telescope configuration
+--[[local conf = require("telescope.config").values
+local function toggle_telescope(harpoon_files)
+	local file_paths = {}
+	for _, item in ipairs(harpoon_files.items) do
+		table.insert(file_paths, item.value)
+	end
+
+	require("telescope.pickers")
+		.new({}, {
+			prompt_title = "Harpoon",
+			finder = require("telescope.finders").new_table({
+				results = file_paths,
+			}),
+			previewer = conf.file_previewer({}),
+			sorter = conf.generic_sorter({}),
+		})
+		:find()
+end
+
+vim.keymap.set("n", "<C-d>", function()
+	toggle_telescope(harpoon:list())
+end, { desc = "Open harpoon window" })]]
+
+--vim.keymap.set("n", "<C-h>", function() harpoon:list():select(1) end)
+--vim.keymap.set("n", "<C-t>", function() harpoon:list():select(2) end)
+--vim.keymap.set("n", "<C-n>", function() harpoon:list():select(3) end)
+--vim.keymap.set("n", "<C-s>", function() harpoon:list():select(4) end)
+
+--vim.keymap.set("n", "<C-S-P>", function() harpoon:list():prev() end)
+--vim.keymap.set("n", "<C-S-N>", function() harpoon:list():next() end)
