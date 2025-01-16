@@ -922,6 +922,8 @@ vim.keymap.set("i", "<C-z>", "<C-o>u") -- CTRL-Z to undo while editing
 vim.keymap.set("n", "<BS>", "<Left>x") -- making backspace delete character before cursor
 vim.keymap.set("n", "x", '"_x') -- make it so x doesnt save deleted char to a register
 
+vim.keymap.set("n", "<Leader><cr>", "o<Esc>", { desc = "new empty line" })
+
 vim.keymap.set("n", "<C-c>", function()
 	local current_line = vim.api.nvim_get_current_line()
 	local start_index = string.find(current_line, "//")
@@ -968,7 +970,7 @@ end)]]
 vim.keymap.set("n", "<S-q>", "<cmd>w | qa<CR>", { desc = "save and quit all windows" })
 
 vim.g.term_buf_hidden = 0
-vim.keymap.set("n", "<C-w>t", function()
+vim.keymap.set({ "n", "t" }, "<C-w>t", function()
 	if vim.g.term_buf_hidden == 1 then
 		vim.api.nvim_exec("sp | winc 8- | buf term | startinsert", false)
 		vim.g.term_buf_hidden = 0
@@ -1036,7 +1038,8 @@ vim.api.nvim_create_autocmd("VimEnter", {
 	pattern = "*",
 	callback = function()
 		vim.api.nvim_exec("sp | winc 8- | terminal", false)
-		vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | winc k', false)
+		vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | hide', false)
+		vim.g.term_buf_hidden = 1
 	end,
 })
 
@@ -1058,7 +1061,7 @@ vim.keymap.set("n", "<C-d>", function()
 	harpoon.ui:toggle_quick_menu(harpoon:list())
 end, { desc = "Harpoon quick menu" })
 
--- basic telescope configuration
+--- basic telescope configuration
 --[[local conf = require("telescope.config").values
 local function toggle_telescope(harpoon_files)
 	local file_paths = {}
