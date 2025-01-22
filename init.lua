@@ -496,6 +496,7 @@ require("lazy").setup({
 					},
 				},
 				zls = {},
+				html = {},
 			}
 
 			-- Ensure the servers and tools above are installed
@@ -761,7 +762,7 @@ require("lazy").setup({
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
 		opts = {
-			ensure_installed = { "bash", "c", "html", "lua", "luadoc", "markdown", "vim", "vimdoc" },
+			ensure_installed = { "bash", "c", "html", "lua", "luadoc", "markdown", "vim", "vimdoc", "c_sharp" },
 			-- Autoinstall languages that are not installed
 			auto_install = true,
 			highlight = {
@@ -1018,10 +1019,13 @@ vim.g.netrw_winsize = 85
 --- movement configs
 vim.o.whichwrap = "b,s,<,>,[,],h,l"
 
--- adding extensions
+--- adding extensions
 vim.filetype.add({ extension = { templ = "templ" } })
+vim.filetype.add({ extension = { razor = "html" } })
 
--- terminal startup autocmd
+-- my autocmds --
+
+--- terminal startup autocmd
 vim.api.nvim_create_autocmd("TermOpen", {
 	desc = "Configs terminal with cmderinit",
 	group = vim.api.nvim_create_augroup("my-term-cmds", { clear = true }),
@@ -1031,9 +1035,9 @@ vim.api.nvim_create_autocmd("TermOpen", {
 	end,
 })
 
--- defining startup autocmd
+--- neovim startup autocmd
 vim.api.nvim_create_autocmd("VimEnter", {
-	desc = "Create and resize tabs for file tree and terminal",
+	desc = "Create and resize initial tabs",
 	group = vim.api.nvim_create_augroup("my-startup-cmds", { clear = true }),
 	pattern = "*",
 	callback = function()
@@ -1042,6 +1046,15 @@ vim.api.nvim_create_autocmd("VimEnter", {
 		vim.g.term_buf_hidden = 1
 	end,
 })
+
+--[[- defining Razor/Blazor syntax highlighting autocmd
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+	group = vim.api.nvim_create_augroup("my-razor-cmds", { clear = true }),
+	pattern = { "*.cshtml", "*.razor" },
+	callback = function()
+		vim.o.filetype = "html.cshtml.razor"
+	end,
+})]]
 
 -- general options --
 vim.o.tabstop = 4
