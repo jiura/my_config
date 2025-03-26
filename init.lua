@@ -10,7 +10,7 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -199,19 +199,23 @@ require("lazy").setup({
 			require("which-key").setup()
 
 			-- Document existing key chains
-			require("which-key").register({
-				["<leader>c"] = { name = "[C]ode", _ = "which_key_ignore" },
-				["<leader>d"] = { name = "[D]ocument", _ = "which_key_ignore" },
-				["<leader>r"] = { name = "[R]ename", _ = "which_key_ignore" },
-				["<leader>s"] = { name = "[S]earch", _ = "which_key_ignore" },
-				["<leader>w"] = { name = "[W]orkspace", _ = "which_key_ignore" },
-				["<leader>t"] = { name = "[T]oggle", _ = "which_key_ignore" },
-				["<leader>h"] = { name = "Git [H]unk", _ = "which_key_ignore" },
+			require("which-key").add({
+				{ "<leader>c", group = "[C]ode" },
+				{ "<leader>c_", hidden = true },
+				{ "<leader>d", group = "[D]ocument" },
+				{ "<leader>d_", hidden = true },
+				{ "<leader>h", group = "Git [H]unk" },
+				{ "<leader>h_", hidden = true },
+				{ "<leader>r", group = "[R]ename" },
+				{ "<leader>r_", hidden = true },
+				{ "<leader>s", group = "[S]earch" },
+				{ "<leader>s_", hidden = true },
+				{ "<leader>t", group = "[T]oggle" },
+				{ "<leader>t_", hidden = true },
+				{ "<leader>w", group = "[W]orkspace" },
+				{ "<leader>w_", hidden = true },
+				{ "<leader>h", desc = "Git [H]unk", mode = { "n", "v" } },
 			})
-			-- visual mode
-			require("which-key").register({
-				["<leader>h"] = { "Git [H]unk" },
-			}, { mode = "v" })
 		end,
 	},
 
@@ -294,9 +298,11 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
 			vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
 			vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "[S]earch [F]iles" })
+			vim.keymap.set("n", "<C-f>", builtin.find_files, { desc = "Search [F]iles" })
 			vim.keymap.set("n", "<leader>ss", builtin.builtin, { desc = "[S]earch [S]elect Telescope" })
 			vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
 			vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch by [G]rep" })
+			vim.keymap.set("n", "<C-g>", builtin.live_grep, { desc = "Search by [G]rep" })
 			vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
 			vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "[S]earch [R]esume" })
 			vim.keymap.set("n", "<leader>s.", builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
@@ -476,8 +482,9 @@ require("lazy").setup({
 				--
 				clangd = {},
 				gopls = {},
-				csharp_ls = {},
-				templ = {},
+				--csharp_ls = {},
+				omnisharp = {},
+				--templ = {},
 				lua_ls = {
 					-- cmd = {...},
 					-- filetypes = { ...},
@@ -497,6 +504,7 @@ require("lazy").setup({
 				},
 				zls = {},
 				html = {},
+				pylsp = {},
 			}
 
 			-- Ensure the servers and tools above are installed
@@ -678,18 +686,24 @@ require("lazy").setup({
 		end,
 	},
 
+	{
+		"rebelot/kanagawa.nvim",
+	},
+
 	{ -- You can easily change to a different colorscheme.
 		-- Change the name of the colorscheme plugin below, and then
 		-- change the command in the config to whatever the name of that colorscheme is.
 		--
 		-- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-		"rebelot/kanagawa.nvim",
+		-- "rebelot/kanagawa.nvim",
+		"folke/tokyonight.nvim",
 		priority = 1000, -- Make sure to load this before all the other start plugins.
 		init = function()
 			-- Load the colorscheme here.
 			-- Like many other themes, this one has different styles, and you could load
 			-- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-			vim.cmd.colorscheme("kanagawa-dragon")
+			-- vim.cmd.colorscheme("kanagawa-dragon")
+			vim.cmd.colorscheme("tokyonight-night")
 
 			vim.keymap.set("n", "<leader>co", "<cmd>Telescope colorscheme<CR>", {})
 			-- You can configure highlights by doing something like:
@@ -826,6 +840,7 @@ require("lazy").setup({
 		branch = "harpoon2",
 		dependencies = { "nvim-lua/plenary.nvim" },
 	},
+	"rstacruz/vim-closer",
 }, {
 	ui = {
 		-- If you are using a Nerd Font: set icons to an empty table which will use the
@@ -911,19 +926,18 @@ vim.keymap.set("i", "<C-Right>", function() -- ctrl + left or right == go back/f
 	end, 1)
 end)
 
-vim.keymap.set({ "n", "v" }, "<Leader>1", "0", { desc = "start of line" }) -- go to start of line
+vim.keymap.set({ "n", "v" }, "<Leader>1", "0", { desc = "Start of line" }) -- go to start of line
 
 vim.keymap.set("n", "<Home>", "^")
 vim.keymap.set("i", "<Home>", "<C-o>^")
 
 --- editing
 
-vim.keymap.set("i", "<C-_>", "<C-w>") -- forgot what this is, probably ctrl + backspace
+vim.keymap.set("i", "<C-BS>", "<C-W>", { noremap = true }) -- ctrl + backspace
 vim.keymap.set("i", "<C-z>", "<C-o>u") -- CTRL-Z to undo while editing
-vim.keymap.set("n", "<BS>", "<Left>x") -- making backspace delete character before cursor
 vim.keymap.set("n", "x", '"_x') -- make it so x doesnt save deleted char to a register
 
-vim.keymap.set("n", "<Leader><cr>", "o<Esc>", { desc = "new empty line" })
+vim.keymap.set("n", "<Leader><cr>", "o<Esc>", { desc = "New empty line" })
 
 vim.keymap.set("n", "<C-c>", function()
 	local current_line = vim.api.nvim_get_current_line()
@@ -1021,31 +1035,56 @@ vim.o.whichwrap = "b,s,<,>,[,],h,l"
 
 --- adding extensions
 vim.filetype.add({ extension = { templ = "templ" } })
-vim.filetype.add({ extension = { razor = "html" } })
+vim.filetype.add({ extension = { razor = "razor" } })
+vim.filetype.add({ extension = { cshtml = "cshtml" } })
 
 -- my autocmds --
 
 --- terminal startup autocmd
-vim.api.nvim_create_autocmd("TermOpen", {
-	desc = "Configs terminal with cmderinit",
-	group = vim.api.nvim_create_augroup("my-term-cmds", { clear = true }),
-	pattern = "*",
-	callback = function()
-		vim.api.nvim_exec('winc 8- | call chansend(&channel, "cmderinit\\<CR>")', false)
-	end,
-})
+if vim.loop.os_uname().sysname == "Linux" then
+	vim.api.nvim_create_autocmd("TermOpen", {
+		desc = "Configs terminal with cmderinit",
+		group = vim.api.nvim_create_augroup("my-term-cmds", { clear = true }),
+		pattern = "*",
+		callback = function()
+			vim.api.nvim_exec("winc 8-", false)
+		end,
+	})
+else
+	vim.api.nvim_create_autocmd("TermOpen", {
+		desc = "Configs terminal with cmderinit",
+		group = vim.api.nvim_create_augroup("my-term-cmds", { clear = true }),
+		pattern = "*",
+		callback = function()
+			vim.api.nvim_exec('winc 8- | call chansend(&channel, "cmderinit\\<CR>")', false)
+		end,
+	})
+end
 
 --- neovim startup autocmd
-vim.api.nvim_create_autocmd("VimEnter", {
-	desc = "Create and resize initial tabs",
-	group = vim.api.nvim_create_augroup("my-startup-cmds", { clear = true }),
-	pattern = "*",
-	callback = function()
-		vim.api.nvim_exec("sp | winc 8- | terminal", false)
-		vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | hide', false)
-		vim.g.term_buf_hidden = 1
-	end,
-})
+if vim.loop.os_uname().sysname == "Linux" then
+	vim.api.nvim_create_autocmd("VimEnter", {
+		desc = "Create and resize initial tabs",
+		group = vim.api.nvim_create_augroup("my-startup-cmds", { clear = true }),
+		pattern = "*",
+		callback = function()
+			vim.api.nvim_exec("sp | winc 8- | terminal", false)
+			vim.api.nvim_exec("hide", false)
+			vim.g.term_buf_hidden = 1
+		end,
+	})
+else
+	vim.api.nvim_create_autocmd("VimEnter", {
+		desc = "Create and resize initial tabs",
+		group = vim.api.nvim_create_augroup("my-startup-cmds", { clear = true }),
+		pattern = "*",
+		callback = function()
+			vim.api.nvim_exec("sp | winc 8- | terminal", false)
+			vim.api.nvim_exec('call chansend(&channel, "cmderinit\\<CR>") | hide', false)
+			vim.g.term_buf_hidden = 1
+		end,
+	})
+end
 
 --[[- defining Razor/Blazor syntax highlighting autocmd
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
@@ -1055,6 +1094,8 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
 		vim.o.filetype = "html.cshtml.razor"
 	end,
 })]]
+vim.treesitter.language.register("html", "razor")
+vim.treesitter.language.register("html", "cshtml")
 
 -- general options --
 vim.o.tabstop = 4
