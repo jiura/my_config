@@ -478,8 +478,8 @@ require("lazy").setup({
 				--    https://github.com/pmizio/typescript-tools.nvim
 				--
 				-- But for many setups, the LSP (`tsserver`) will work just fine
-				-- tsserver = {},
-				--
+				ts_ls = {},
+				jsonls = {},
 				clangd = {},
 				gopls = {},
 				--csharp_ls = {},
@@ -642,7 +642,7 @@ require("lazy").setup({
 					-- Accept ([y]es) the completion.
 					--  This will auto-import if your LSP supports it.
 					--  This will expand snippets if the LSP sent a snippet.
-					["<C-a>"] = cmp.mapping.confirm({ select = true }), -- NOTE:(joao) change this from C-y to C-a (as in "[A]ccept")
+					["<C-a>"] = cmp.mapping.confirm({ select = true }), -- NOTE:(joao) changed this from C-y to C-a (as in "[A]ccept")
 
 					-- If you prefer more traditional completion keymaps,
 					-- you can uncomment the following lines
@@ -716,7 +716,145 @@ require("lazy").setup({
 			-- Like many other themes, this one has different styles, and you could load
 			-- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
 			-- vim.cmd.colorscheme("kanagawa-dragon")
-			vim.cmd.colorscheme("kanagawa-dragon")
+
+			require("tokyonight").setup({
+				--style = "night",
+				transparent = true,
+				on_colors = function(colors)
+					colors.black = "#c5c6ca"
+					colors.blue = "#5191ec"
+					colors.blue0 = "#92a7e5"
+					colors.blue1 = "#27a2b6"
+					colors.blue2 = "#1a9db3"
+					colors.blue5 = "#a3a3a3"
+					colors.blue6 = "#3c6e6d"
+					colors.blue7 = "#a9b8e0"
+					colors.comment = "#9aa1c3"
+					colors.cyan = "#198db6"
+					colors.dark3 = "#9ea5c1"
+					colors.dark5 = "#7c85ac"
+					colors.diff = {
+						add = "#d7e1e6",
+						change = "#e1e4ed",
+						delete = "#e8d8db",
+						text = "#a9b8e0",
+					}
+					colors.error = "#d45a5a"
+					colors.green = "#6c8c48"
+					colors.green1 = "#499086"
+					colors.green2 = "#4aa9b9"
+					colors.hint = "#2ba994"
+					colors.info = "#1a9db3"
+					colors.magenta = "#ad6af5"
+					colors.magenta2 = "#e0257a"
+					colors.none = "NONE"
+					colors.orange = "#b2b29b"
+					colors.purple = "#905fcc"
+					colors.rainbow =
+						{ "#5191ec", "#a07d4a", "#6c8c48", "#2ba994", "#ad6af5", "#905fcc", "#cb6e00", "#ff4780" }
+					colors.red = "#ff4780"
+					colors.red1 = "#d45a5a"
+					colors.teal = "#2ba994"
+					colors.terminal = {
+						black = "#c5c6ca",
+						black_bright = "#b2b7d4",
+						blue = "#5191ec",
+						blue_bright = "#5c9cff",
+						cyan = "#198db6",
+						cyan_bright = "#1a96c2",
+						green = "#6c8c48",
+						green_bright = "#71a633",
+						magenta = "#ad6af5",
+						magenta_bright = "#b77aff",
+						red = "#ff4780",
+						red_bright = "#ff6489",
+						white = "#7383c2",
+						white_bright = "#5a7ae2",
+						yellow = "#a07d4a",
+						yellow_bright = "#b48934",
+					}
+					colors.terminal_black = "#b2b7d4"
+					colors.todo = "#5191ec"
+					colors.warning = "#a07d4a"
+					colors.yellow = "#a07d4a"
+				end,
+
+				--[[on_colors = function(colors)
+					colors.bg = "#181820"
+					colors.black = "#9ca0b0" -- softer dark gray
+					colors.blue = "#4a8fe7" -- more vivid blue for keywords
+					colors.blue0 = "#6b90dd"
+					colors.blue1 = "#3189a1"
+					colors.blue2 = "#2795ac"
+					colors.blue5 = "#1c7c95"
+					colors.blue6 = "#305f5e"
+					colors.blue7 = "#a2b2d5"
+					colors.border = "#9ca0b0"
+					colors.border_highlight = "#49a3b3"
+					colors.comment = "#70788a" -- more muted comment color
+					colors.cyan = "#179fb7"
+					colors.dark3 = "#7a8199"
+					colors.dark5 = "#626a84"
+					colors.diff = {
+						add = "#b7c6cc",
+						change = "#c3c7d4",
+						delete = "#c8b6ba",
+						text = "#a2b2d5",
+					}
+					colors.error = "#d15050"
+					colors.fg = "#b0b6d4"
+					colors.fg_dark = "#6172b0"
+					colors.fg_float = "#3760bf"
+					colors.fg_sidebar = "#6172b0"
+					colors.green = "#78955b" -- slightly duller green
+					colors.green1 = "#4f8c7e"
+					colors.green2 = "#4aa1b3"
+					colors.hint = "#23a393"
+					colors.info = "#2795ac"
+					colors.magenta = "#b378f6"
+					colors.magenta2 = "#e5488a"
+					colors.none = "NONE"
+					colors.orange = "#c07c30"
+					colors.purple = "#8c5bd2"
+					colors.rainbow = {
+						"#4a8fe7",
+						"#a6784a",
+						"#78955b",
+						"#23a393",
+						"#b378f6",
+						"#8c5bd2",
+						"#c07c30",
+						"#ff4a75",
+					}
+					colors.red = "#ff4a75"
+					colors.red1 = "#d15050"
+					colors.teal = "#23a393"
+					colors.terminal = {
+						black = "#9ca0b0",
+						black_bright = "#9095b5",
+						blue = "#4a8fe7",
+						blue_bright = "#5a9bff",
+						cyan = "#179fb7",
+						cyan_bright = "#1ab0c8",
+						green = "#78955b",
+						green_bright = "#82a552",
+						magenta = "#b378f6",
+						magenta_bright = "#c488ff",
+						red = "#ff4a75",
+						red_bright = "#ff5a80",
+						white = "#8d9bc4",
+						white_bright = "#b0b6d4",
+						yellow = "#a6784a",
+						yellow_bright = "#bb8d34",
+					}
+					colors.terminal_black = "#9095b5"
+					colors.todo = "#4a8fe7"
+					colors.warning = "#a6784a"
+					colors.yellow = "#a6784a"
+				end,]]
+			})
+
+			vim.cmd.colorscheme("tokyonight-night")
 
 			vim.keymap.set("n", "<leader>co", "<cmd>Telescope colorscheme<CR>", {})
 			-- You can configure highlights by doing something like:
@@ -887,6 +1025,7 @@ require("lazy").setup({
 			bigfile = { enabled = true },
 			dashboard = { enabled = true },
 			explorer = { enabled = true },
+			image = { enabled = true },
 			indent = { enabled = true },
 			input = { enabled = true },
 			picker = { enabled = true },
@@ -1083,7 +1222,11 @@ end)
 end)]]
 
 --- misc
-vim.keymap.set("n", "<S-q>", "<cmd>w | qa<CR>", { desc = "save and quit all windows" })
+
+vim.keymap.set("n", "<C-Up>", [[:<C-u>keepjumps normal! {<CR>]], { silent = true })
+vim.keymap.set("n", "<C-Down>", [[:<C-u>keepjumps normal! }<CR>]], { silent = true })
+vim.keymap.set("i", "<C-Up>", [[<C-o>:keepjumps normal! {<CR>]], { silent = true })
+vim.keymap.set("i", "<C-Down>", [[<C-o>:keepjumps normal! }<CR>]], { silent = true })
 
 vim.g.term_buf_hidden = 0
 vim.keymap.set({ "n", "t" }, "<C-w>t", function()
