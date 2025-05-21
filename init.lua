@@ -854,7 +854,7 @@ require("lazy").setup({
 				end,]]
 			})
 
-			vim.cmd.colorscheme("tokyonight-night")
+			vim.cmd.colorscheme("kanagawa-dragon")
 
 			vim.keymap.set("n", "<leader>co", "<cmd>Telescope colorscheme<CR>", {})
 			-- You can configure highlights by doing something like:
@@ -1035,6 +1035,15 @@ require("lazy").setup({
 			scroll = { enabled = true },
 			statuscolumn = { enabled = true },
 			words = { enabled = true },
+		},
+		keys = {
+			{
+				"<C-e>",
+				function()
+					Snacks.explorer()
+				end,
+				desc = "File Explorer",
+			},
 		},
 	},
 	---@type LazySpec
