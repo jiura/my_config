@@ -19,7 +19,7 @@ config.font = wezterm.font("Agave Nerd Font Propo")
 config.cell_width = 0.9
 config.window_background_opacity = 0.82
 config.prefer_egl = true
-config.font_size = 12.0
+config.font_size = 14.0
 
 config.window_padding = {
 	left = 0,
@@ -53,6 +53,14 @@ wezterm.on("toggle-colorscheme", function(window, pane)
 	end
 	window:set_config_overrides(overrides)
 end)
+
+config.mouse_bindings = {
+	{
+		event = { Up = { streak = 1, button = "Left" } },
+		mods = "NONE",
+		action = wezterm.action.DisableDefaultAssignment,
+	},
+}
 
 -- keymaps
 config.keys = {
@@ -102,19 +110,19 @@ config.keys = {
 		}),
 	},
 	{
-		key = "w",
-		mods = "CTRL|SHIFT",
+		key = "t",
+		mods = "CTRL",
+		action = wezterm.action.SpawnTab("CurrentPaneDomain"),
+	},
+	{
+		key = "W",
+		mods = "CTRL",
 		action = wezterm.action.CloseCurrentPane({ confirm = true }),
 	},
 	{
 		key = "!",
 		mods = "CTRL|SHIFT",
-		action = act.SpawnCommandInNewTab({ cwd = "W:/", domain = "DefaultDomain" }),
-	},
-	{
-		key = "@",
-		mods = "CTRL|SHIFT",
-		action = act.SpawnTab({ DomainName = "WSL:Debian" }),
+		action = act.SpawnCommandInNewTab({ cwd = "~", domain = "DefaultDomain" }),
 	},
 	{
 		key = "LeftArrow",
@@ -209,7 +217,7 @@ config.window_frame = {
 -- config.window_decorations = "INTEGRATED_BUTTONS | RESIZE"
 config.window_decorations = "NONE | RESIZE"
 -- config.default_prog = { "powershell.exe", "-NoLogo" }
-config.default_prog = { "cmd.exe", "/s", "/k", "g:/dev/cmder/vendor/clink/clink_x64.exe", "inject", "-q" }
+-- config.default_prog = { "cmd.exe", "/s", "/k", "g:/dev/cmder/vendor/clink/clink_x64.exe", "inject", "-q" }
 config.initial_cols = 80
 -- config.window_background_image = "C:/dev/misc/berk.png"
 -- config.window_background_image_hsb = {
@@ -226,6 +234,9 @@ config.initial_cols = 80
 -- 	-- window:gui_window():maximize()
 -- 	-- window:gui_window():set_position(0, 0)
 -- end)
+
+config.use_dead_keys = false
+config.use_ime = false
 
 -- and finally, return the configuration to wezterm
 return config
