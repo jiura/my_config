@@ -118,7 +118,7 @@ zstyle ':completion:*' menu select
 zmodload zsh/complist
 _comp_options+=(globdots)
 
-ZSH_AUTOSUGGEST_STRATEGY=(completion history)
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
 # Vi mode
 bindkey -v
@@ -173,20 +173,6 @@ bindkey '^e' edit-command-line
 export PATH=$PATH:/usr/local/go/bin
 export PATH=$PATH:~/go/bin
 
-# Python aliases
-alias python="/usr/local/bin/python3.13"
-alias python3="/usr/local/bin/python3.13"
-
-# Neovim config alias
-alias nvimc="nvim ~/.config/nvim/init.lua"
-# WSL shutdown alias
-alias wslshutdown='cmd.exe /c "wsl --shutdown"'
-# Run CMD with clink alias
-alias cmd='cmd.exe /s /k g:/dev/cmder/vendor/clink/clink_x64.exe inject -q'
-
-# Mount W: drive on startup
-sudo mount -t drvfs 'G:\work' /mnt/w
-
 # Share history through sessions
 setopt SHARE_HISTORY
 
@@ -213,3 +199,18 @@ function yy() {
 	fi
 	rm -f -- "$tmp"
 }
+
+### MY ALIASES
+
+# Neovim config alias
+alias nvimc="nvim ~/.config/nvim/init.lua"
+# nvim with sudo and correct config
+alias snvim='sudo nvim -u $HOME/.config/nvim/init.lua'
+# tor browser
+alias tor="~/apps/tor-browser/start-tor-browser.desktop"
+# yazi
+alias y="yy"
+# for "build" scripts (so I don't have to type ./build)
+alias build="./build"
+# for "run" scripts (so I don't have to type ./run)
+alias run="./run"
