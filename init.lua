@@ -1,3 +1,85 @@
+-- Greeter
+
+vim.api.nvim_create_autocmd("VimEnter", {
+	once = true,
+	callback = function()
+		vim.wo.number = false
+		vim.wo.relativenumber = false
+		vim.wo.cursorline = false
+
+		vim.api.nvim_create_autocmd("BufWinEnter", {
+			once = true,
+			callback = function()
+				vim.wo.number = true
+				vim.wo.relativenumber = true
+				vim.wo.cursorline = true
+			end
+		})
+
+		local current_buf = 0
+		local greeter_text = {
+			"     ⠀⠀⠀⠀⠀⠀⢀⡤⡜⠧⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⣟⡵⣔⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣴⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡤⠞⠁⢳⠤⣤⡀⢀⣀⠀⠀⠀⠀⠀⠀⠀⠀⣹⣀⣨⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠯⣀⠀⠀⠀⣀⣤⢿⠯⣉⣳⠀⠀⠀⠀⠀⠀⠀⠈⠀⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡏⣠⢤⠠⣿⣨⠧⠀⠀⠙⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⡄⡀⠀⠹⣗⣿⣹⣧⠻⠤⠤⡀⠀⠘⣆⣀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢘⣿⣯⢧⡀⠀⣏⣟⡟⠋⠀⠀⢠⣼⡴⠚⠉⠀⠀⠀⠀⠉⠙⠒⠤⠤⠤⠤⣄⡀⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⢯⢿⡇⠰⣿⣾⠋⠀⠀⠀⢹⡿⠁⠀⠀⠀⠀⠀⠀⠀⣀⠀⠀⠀⠀⠀⠀⠈⠲⡀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⡄⡿⢁⣶⣴⡾⠁⠀⡇⠀⠀⠀⠀⠀⠀⠀⠸⠟⠀⠀⠀⠀⠀⠀⠀⠀⠹⡀⠀⠀",
+			"     ⠀⠀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠐⢭⣾⣵⣦⡻⣇⢸⣿⡯⠃⣄⣀⡹⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀",
+			"     ⢤⡾⢻⣤⠄⠀⠀⠀⠀⠀⠀⠀⠙⠻⠿⠟⠛⠻⣾⠉⠰⣦⣿⡿⠀⠙⢦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣣⣾⣷⣆⡇⠀⠀",
+			"     ⠘⠊⠻⠆⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣄⢀⠀⠀⢹⣠⣚⣿⣿⠟⠀⠀⠀⠙⢦⡀⠀⠀⠀⠀⠀⠀⢠⢯⣾⣿⣿⣿⣿⣇⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢙⣿⣿⣿⣿⣾⣖⢤⡈⣿⣿⠋⠀⠀⠀⠀⠀⠀⠀⠹⡆⠀⠀⠀⠀⠀⡾⣾⣿⣿⣿⣿⡟⡞⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣨⣿⢿⢝⢮⡉⠉⠛⢷⣿⠁⠀⠀⣀⣠⡀⠀⠀⠀⠀⠹⡄⠀⠀⢰⠞⢳⡹⣿⣿⡿⢟⡴⠃⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⡘⡼⣍⣧⡇⠀⠀⠈⣿⠀⣶⣶⣿⣿⠏⠀⠀⠀⠀⠠⣧⣴⠶⠛⠳⠤⠽⣒⠶⠒⠋⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠿⡷⢋⢠⣶⠀⢰⣿⡿⠻⠉⠃⠀⠀⠀⠀⠀⠀⢠⢣⡶⠒⠒⠉⠉⠁⠈⠑⢄⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢤⣄⣀⣤⣄⡘⢾⣿⡇⢸⡏⢰⣤⣴⣤⠀⠀⠀⠀⠀⠀⡏⠁⢹⣁⣔⢠⡒⠲⣶⠖⠊⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⣻⣶⣿⣿⡿⠿⣶⠿⣄⢸⣧⡾⠛⠛⠃⠀⠀⠀⠀⠀⠐⡇⠀⠀⠀⠉⠉⠀⠀⠈⣆⠀⠀⠀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠸⠟⠻⠛⠹⠁⠀⠀⠀⠈⢻⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢳⡀⠀⠀⠀⠀⠀⠀⠀⣼⣏⡉⠙⠋⣛⣦",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣶⠂⢀⠀⠀⢠⡞⠉⠀⠉⠙⠋⠉⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡤⠖⣫⣳⡦⢼⣿⡖⠛⠓⡦⣄⡀⠀⠀⠀⢀⣀⣀⡸⠴⠀⡆⡀⠀⢣⣀⣀⣤⣀⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣻⡉⠉⠀⢀⠈⢉⣠⡦⠾⠶⠿⠥⢄⡀⢰⢫⠄⣰⢼⠖⠒⠋⠁⠀⠀⠀⠀⢀⡞⠀⠀⠀",
+			"     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠓⠤⠦⠖⠋⠛⠧⢅⣀⣄⡤⠽⠚⠀⠀⠙⠺⣁⣔⡀⣰⠀⠀⠀⣀⣠⠴⠋⠀⠀⠀⠀",
+			"      ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠓⠛⠒⠋⠉⠁⠀⠀⠀⠀⠀⠀⠀",
+			[[ __    __ ________  ______  __     __ ______ __       __ ]],
+			[[|  \  |  \        \/      \|  \   |  \      \  \     /  \]],
+			[[| ▓▓\ | ▓▓ ▓▓▓▓▓▓▓▓  ▓▓▓▓▓▓\ ▓▓   | ▓▓\▓▓▓▓▓▓ ▓▓\   /  ▓▓]],
+			[[| ▓▓▓\| ▓▓ ▓▓__   | ▓▓  | ▓▓ ▓▓   | ▓▓ | ▓▓ | ▓▓▓\ /  ▓▓▓]],
+			[[| ▓▓▓▓\ ▓▓ ▓▓  \  | ▓▓  | ▓▓\▓▓\ /  ▓▓ | ▓▓ | ▓▓▓▓\  ▓▓▓▓]],
+			[[| ▓▓\▓▓ ▓▓ ▓▓▓▓▓  | ▓▓  | ▓▓ \▓▓\  ▓▓  | ▓▓ | ▓▓\▓▓ ▓▓ ▓▓]],
+			[[| ▓▓ \▓▓▓▓ ▓▓_____| ▓▓__/ ▓▓  \▓▓ ▓▓  _| ▓▓_| ▓▓ \▓▓▓| ▓▓]],
+			[[| ▓▓  \▓▓▓ ▓▓     \\▓▓    ▓▓   \▓▓▓  |   ▓▓ \ ▓▓  \▓ | ▓▓]],
+			[[ \▓▓   \▓▓\▓▓▓▓▓▓▓▓ \▓▓▓▓▓▓     \▓    \▓▓▓▓▓▓\▓▓      \▓▓]]
+		}
+		local screen_width = vim.api.nvim_win_get_width(0)
+		local screen_height = vim.api.nvim_win_get_height(0)
+
+		-- local start_line = math.floor((screen_height - #greeter_text) / 2)
+
+		local biggest_line_len = 0
+		for i = 1, #greeter_text do
+			if vim.str_utfindex(greeter_text[i]) > biggest_line_len then
+				biggest_line_len = vim.str_utfindex(greeter_text[i])
+			end
+		end
+
+		local padding = math.floor((screen_width - biggest_line_len) / 2)
+
+		local function center_text(str)
+			return string.rep(" ", padding) .. str
+		end
+
+		local centered_greeter_text = vim.tbl_map(center_text, greeter_text)
+
+		vim.api.nvim_buf_set_lines(current_buf, 3, 3, false, centered_greeter_text)
+		-- vim.api.nvim_buf_set_text(0, 0, 0, 0, 0, { tostring(biggest_line_len) })
+		vim.api.nvim_set_option_value("modified", false, { buf = current_buf })
+		vim.api.nvim_set_option_value("modifiable", false, { buf = current_buf })
+	end,
+})
+
 -- Disabling netrw
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
@@ -99,17 +181,17 @@ require("nvim-tree").setup()
 --[ fzf-lua
 require("fzf-lua").setup()
 
--- Shortcuts
+-- Keymaps
 vim.g.mapleader = " "
 
---[ Editor Shortcuts
-vim.keymap.set("n", "<leader>r", ":update<CR>:source<CR>", { desc = "Refresh" })
+--[ Editor Keymaps
+vim.keymap.set("n", "<leader>R", ":update<CR>:source<CR>", { desc = "Refresh" })
 vim.keymap.set("n", "<leader>w", ":write<CR>", { desc = "Write" })
 vim.keymap.set("n", "<leader>Q", ":quit<CR>", { desc = "Quit" })
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>") -- Clear search highlight
 
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic [E]rror messages" })
-vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
+-- vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
 vim.keymap.set("n", "<leader>ts", function() -- toggle signs before line number
 	if vim.o.signcolumn == "no" then
@@ -121,21 +203,35 @@ end, { desc = "Toggle signcolumn" })
 
 vim.keymap.set("n", "<leader>u", ":UndotreeToggle<CR><C-w>w")
 vim.keymap.set("n", "<leader><Up>", ":NvimTreeOpen<CR>")
+vim.keymap.set("n", "<leader>co", ":FzfLua colorschemes<CR>")
+vim.keymap.set("n", "<leader>r", ":FzfLua registers<CR>")
+vim.keymap.set("n", "<leader>b", ":FzfLua buffers<CR>")
 
---[ LSP
+--[ FzfLua Git Keymaps
+vim.keymap.set("n", "<leader>gs", ":FzfLua git_status<CR>")
+vim.keymap.set("n", "<leader>gd", ":FzfLua git_diff<CR>")
+vim.keymap.set("n", "<leader>gc", ":FzfLua git_commits<CR>")
+vim.keymap.set("n", "<leader>gb", ":FzfLua git_branches<CR>")
+
+--[ LSP Keymaps
 vim.keymap.set("n", "<leader>f", vim.lsp.buf.format, { desc = "LSP: Format buffer" })
 vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "LSP: Hover documentation" })
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "LSP: Go to definition" })
 vim.keymap.set("n", "<leader>n", vim.lsp.buf.rename, { desc = "LSP: Rename" })
 vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "LSP: Code action" })
 
---[ Basic Typing Shortcuts
+vim.keymap.set("n", "<leader>a", ":FzfLua lsp_references<CR>")
+vim.keymap.set("n", "<leader>q", ":FzfLua lsp_document_diagnostics<CR>")
+vim.keymap.set("n", "<leader>E", ":FzfLua lsp_workspace_diagnostics<CR>")
+
+--[ Basic Typing Keymaps
 vim.keymap.set("n", "<leader><CR>", "o<Esc>")
 vim.keymap.set("n", "<leader><Backspace>", "O<Esc>")
 vim.keymap.set("i", "<C-BS>", "<C-W>", { noremap = true }) -- ctrl + backspace
 vim.keymap.set("n", "x", '"_x')                            -- x not to save deleted char to a register
 
---[ Movement Shortcuts
+--[ Movement Keymaps
+-- TODO: Make gt search for a term, go to first ocurrence and exit search
 vim.keymap.set({ "n", "v" }, "<C-Up>", "{") -- ctrl + up or down == go up/down paragraph
 vim.keymap.set({ "n", "v" }, "<C-Down>", "}")
 vim.keymap.set("i", "<C-Up>", "<C-o>{")
@@ -202,7 +298,7 @@ vim.keymap.set("i", "<C-Up>", [[<C-o>:keepjumps normal! {<CR>]], { silent = true
 vim.keymap.set("i", "<C-Down>", [[<C-o>:keepjumps normal! }<CR>]], { silent = true })
 
 vim.keymap.set("n", "<C-f>", ":FzfLua files<CR>")
-vim.keymap.set("n", "<C-g>", ":FzfLua live_grep<CR>")
+vim.keymap.set("n", "<C-g>", ":FzfLua live_grep resume=true<CR>")
 vim.keymap.set("n", "<C-d>", ":FzfLua lgrep_curbuf<CR>")
 
 -- Colorscheme
