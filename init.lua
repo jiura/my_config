@@ -3,6 +3,10 @@
 vim.api.nvim_create_autocmd("VimEnter", {
 	once = true,
 	callback = function()
+		if vim.fn.expand('%') ~= '' then
+			return
+		end
+
 		vim.wo.number = false
 		vim.wo.relativenumber = false
 		vim.wo.cursorline = false
