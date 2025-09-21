@@ -121,8 +121,8 @@ _comp_options+=(globdots)
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
 # Vi mode
-bindkey -v
-export KEYTIMEOUT=1
+# bindkey -v
+# export KEYTIMEOUT=1
 
 # Use vim keys in tab complete menu
 bindkey -M menuselect '^[OD' vi-backward-char    # Left arrow (^[OD)
@@ -132,25 +132,25 @@ bindkey -M menuselect '^[OB' vi-down-line-or-history  # Down arrow (^[OB)
 bindkey -v '^?' backward-delete-char
 
 # Change cursor shape for different vi modes
-function zle-keymap-select {
-  if [[ ${KEYMAP} == vicmd ]] ||
-     [[ $1 = 'block' ]]; then
-    echo -ne '\e[1 q'
-  elif [[ ${KEYMAP} == main ]] ||
-       [[ ${KEYMAP} == viins ]] ||
-       [[ ${KEYMAP} = '' ]] ||
-       [[ $1 = 'beam' ]]; then
-    echo -ne '\e[5 q'
-  fi
-}
-zle -N zle-keymap-select
-zle-line-init() {
-    zle -K viins # Initiate `vi insert` as keymap (can be removed if `bindkey -V` has been set elsewhere)
-    echo -ne "\e[5 q"
-}
-zle -N zle-line-init
-echo -ne '\e[5 q' # Use beam shape cursor on startup
-preexec() { echo -ne '\e[5 q' ;} # Use beam shape cursor for each new prompt
+# function zle-keymap-select {
+#   if [[ ${KEYMAP} == vicmd ]] ||
+#      [[ $1 = 'block' ]]; then
+#     echo -ne '\e[1 q'
+#   elif [[ ${KEYMAP} == main ]] ||
+#        [[ ${KEYMAP} == viins ]] ||
+#        [[ ${KEYMAP} = '' ]] ||
+#        [[ $1 = 'beam' ]]; then
+#     echo -ne '\e[5 q'
+#   fi
+# }
+# zle -N zle-keymap-select
+# zle-line-init() {
+#     zle -K viins # Initiate `vi insert` as keymap (can be removed if `bindkey -V` has been set elsewhere)
+#     echo -ne "\e[5 q"
+# }
+# zle -N zle-line-init
+# echo -ne '\e[5 q' # Use beam shape cursor on startup
+# preexec() { echo -ne '\e[5 q' ;} # Use beam shape cursor for each new prompt
 
 # Use lf to switch directories and bind it to ctrl-o
 lfcd () {
@@ -169,10 +169,6 @@ export EDITOR="nvim"
 autoload edit-command-line; zle -N edit-command-line
 bindkey '^e' edit-command-line
 
-# Adding Go and Go folder for tools installed (like lf) to path
-export PATH=$PATH:/usr/local/go/bin
-export PATH=$PATH:~/go/bin
-
 # Share history through sessions
 setopt SHARE_HISTORY
 
@@ -183,9 +179,6 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 export FZF_DEFAULT_COMMAND="find ."
 export FZF_DEFAULT_OPTS="--height 40%"
 bindkey -s '^f' 'cd $(fzf)\n'
-
-# Adding ~/.local/bin to PATH (to get fd symlink)
-export PATH="$PATH:$HOME/.local/bin"
 
 # Zoxide
 eval "$(zoxide init zsh)"
@@ -199,6 +192,18 @@ function yy() {
 	fi
 	rm -f -- "$tmp"
 }
+
+### PATH CHANGES
+
+# Adding Go and Go folder for tools installed (like lf) to path
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:~/go/bin
+
+# Adding ~/.local/bin to PATH (to get fd symlink)
+export PATH="$PATH:$HOME/.local/bin"
+
+# Adding dotnet tools to PATH
+export PATH="$PATH:/home/joao/.dotnet/tools"
 
 ### MY ALIASES
 
@@ -214,3 +219,7 @@ alias y="yy"
 alias build="./build"
 # for "run" scripts (so I don't have to type ./run)
 alias run="./run"
+# session restore only works if I kill it manually
+alias rb="pkill chromium && reboot"
+# spotify-player
+alias spt="~/apps/spotify-player/spotify_player"
