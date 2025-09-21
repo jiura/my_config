@@ -98,7 +98,7 @@ vim.o.signcolumn = "no"
 
 vim.o.winborder = "rounded"
 
-vim.o.wrap = false
+vim.o.wrap = true
 
 vim.o.splitright = true
 vim.o.splitbelow = true
@@ -139,7 +139,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- Packs
+-- Plugins
 local gh_path = "https://github.com/"
 vim.pack.add({
 	{ src = gh_path .. "rebelot/kanagawa.nvim" },
@@ -147,16 +147,42 @@ vim.pack.add({
 	{ src = gh_path .. "echasnovski/mini.statusline" },
 	-- { src = gh_path .. "folke/which-key.nvim" },
 	{ src = gh_path .. "ggandor/leap.nvim" },
-	{ src = gh_path .. "tpope/vim-sleuth" },   -- detects file's indentation patterns
+	{ src = gh_path .. "tpope/vim-sleuth" }, -- detects file's indentation patterns
 	{ src = gh_path .. "numToStr/Comment.nvim" }, -- comment selection with "gc"
 	{ src = gh_path .. "lewis6991/gitsigns.nvim" },
 	{ src = gh_path .. "mbbill/undotree" },
 	{ src = gh_path .. "nvim-tree/nvim-tree.lua" },
 	{ src = gh_path .. "ibhagwan/fzf-lua" },
+	{ src = gh_path .. "seblyng/roslyn.nvim" },
 })
 
+-- vim.opt.rtp:prepend("/home/joao/work/proj/plugins/emoji-nvim")
+-- vim.api.nvim_create_user_command("Emoji", function()
+--   require("emoji").pick()
+-- end, {})
+
 --[ LSP
-vim.lsp.enable({ "lua_ls", "gopls" })
+vim.lsp.config('roslyn', {
+	cmd = {
+		'dotnet',
+		'/home/joao/apps/roslyn-ls/nupkg/content/LanguageServer/linux-x64/Microsoft.CodeAnalysis.LanguageServer.dll',
+		"--logLevel",  -- this property is required by the server
+		"Information",
+		"--extensionLogDirectory", -- this property is required by the server
+		vim.fs.joinpath(vim.loop.os_tmpdir(), "roslyn_ls/logs"),
+		"--stdio",
+	}
+})
+
+vim.lsp.enable({
+	"lua_ls",
+	"gopls",
+	"ts_ls",
+	--"cssls",
+	"clangd",
+})
+
+require("roslyn").setup()
 
 --[ mini.statusline
 require("mini.statusline").setup({ use_icons = vim.g.have_nerd_font })
@@ -206,10 +232,11 @@ vim.keymap.set("n", "<leader>ts", function() -- toggle signs before line number
 end, { desc = "Toggle signcolumn" })
 
 vim.keymap.set("n", "<leader>u", ":UndotreeToggle<CR><C-w>w")
-vim.keymap.set("n", "<leader><Up>", ":NvimTreeOpen<CR>")
+vim.keymap.set("n", "<leader><Up>", ":NvimTreeToggle<CR>")
 vim.keymap.set("n", "<leader>co", ":FzfLua colorschemes<CR>")
 vim.keymap.set("n", "<leader>r", ":FzfLua registers<CR>")
 vim.keymap.set("n", "<leader>b", ":FzfLua buffers<CR>")
+vim.keymap.set("n", "<leader>'", ":FzfLua marks<CR>")
 
 --[ FzfLua Git Keymaps
 vim.keymap.set("n", "<leader>gs", ":FzfLua git_status<CR>")
@@ -302,8 +329,8 @@ vim.keymap.set("i", "<C-Up>", [[<C-o>:keepjumps normal! {<CR>]], { silent = true
 vim.keymap.set("i", "<C-Down>", [[<C-o>:keepjumps normal! }<CR>]], { silent = true })
 
 vim.keymap.set("n", "<C-f>", ":FzfLua files<CR>")
-vim.keymap.set("n", "<C-g>", ":FzfLua live_grep resume=true<CR>")
-vim.keymap.set("n", "<C-d>", ":FzfLua lgrep_curbuf<CR>")
+vim.keymap.set("n", "<C-g>", ":FzfLua live_grep_native resume=true<CR>")
+vim.keymap.set("n", "<C-S-g>", ":FzfLua lgrep_curbuf resume=true<CR>")
 
 -- Colorscheme
 require("kanagawa").setup({
