@@ -1,0 +1,43 @@
+[general]
+import = [
+    #"~/.config/alacritty/themes/themes/citylights.toml"
+    "~/.config/alacritty/themes/themes/deep_space.toml"
+    #"~/.config/alacritty/themes/themes/kanagawa_dragon.toml"
+    #"~/.config/alacritty/themes/themes/papercolor_dark.toml"
+    #"~/.config/alacritty/themes/themes/rose_pine_moon.toml"
+]
+
+[font]
+size = 14.0
+
+[font.normal]
+family = "Agave Nerd Font Propo"
+
+[terminal.shell]
+program = "/bin/zsh"
+args = ["-l", "-c", "tmux -f /home/joao/.config/tmux/tmux.conf attach || tmux -f /home/joao/.config/tmux/tmux.conf"]
+
+[selection]
+save_to_clipboard = true
+
+[keyboard]
+bindings = [
+  { key = "V", mods = "Control", action = "Paste" },
+  #{ key = "Space", mods = "Control", action = "ToggleViMode" },
+  { key = "Back", mods = "Control", chars = "\u0017" },  # Ctrl+Backspace -> Ctrl+W
+  { key = "1", mods = "Control", chars = "\uE001" },
+  { key = "2", mods = "Control", chars = "\uE002" },
+  { key = "3", mods = "Control", chars = "\uE003" },
+  { key = "4", mods = "Control", chars = "\uE004" },
+  { key = "5", mods = "Control", chars = "\uE005" },
+  { key = "6", mods = "Control", chars = "\uE006" },
+  { key = "7", mods = "Control", chars = "\uE007" },
+  { key = "8", mods = "Control", chars = "\uE008" },
+  { key = "9", mods = "Control", chars = "\uE009" }
+]
+
+[window]
+opacity = 0.8
+
+[mouse]
+hide_when_typing = true
