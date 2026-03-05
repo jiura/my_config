@@ -152,7 +152,7 @@ vim.pack.add({
 	{ src = gh_path .. "echasnovski/mini.statusline" },
 	{ src = gh_path .. "folke/which-key.nvim" },
 	{ src = gh_path .. "ggandor/leap.nvim" },
-	{ src = gh_path .. "tpope/vim-sleuth" },   -- detects file's indentation patterns
+	{ src = gh_path .. "tpope/vim-sleuth" }, -- detects file's indentation patterns
 	{ src = gh_path .. "numToStr/Comment.nvim" }, -- comment selection with "gc"
 	{ src = gh_path .. "lewis6991/gitsigns.nvim" },
 	{ src = gh_path .. "mbbill/undotree" },
@@ -272,7 +272,7 @@ vim.lsp.config('roslyn', {
 	cmd = {
 		'dotnet',
 		'/home/joao/apps/roslyn-ls/nupkg/content/LanguageServer/linux-x64/Microsoft.CodeAnalysis.LanguageServer.dll',
-		"--logLevel",        -- this property is required by the server
+		"--logLevel", -- this property is required by the server
 		"Information",
 		"--extensionLogDirectory", -- this property is required by the server
 		vim.fs.joinpath(vim.loop.os_tmpdir(), "roslyn_ls/logs"),
@@ -293,8 +293,36 @@ vim.lsp.enable({
 require("roslyn").setup()
 
 --[ mini.statusline
-require("mini.statusline").setup({ use_icons = vim.g.have_nerd_font })
-require("mini.statusline").section_location = function()
+local status_line = require("mini.statusline")
+status_line.setup({
+	use_icons = vim.g.have_nerd_font,
+	content = {
+		active = function()
+			local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
+			local git           = MiniStatusline.section_git({ trunc_width = 40 })
+			local diff          = MiniStatusline.section_diff({ trunc_width = 75 })
+			local diagnostics   = MiniStatusline.section_diagnostics({ trunc_width = 75 })
+			local lsp           = MiniStatusline.section_lsp({ trunc_width = 75 })
+			local filename      = MiniStatusline.section_filename({ trunc_width = 140 })
+			local fileinfo      = MiniStatusline.section_fileinfo({ trunc_width = 120 })
+			local location      = MiniStatusline.section_location({ trunc_width = 75 })
+			local search        = MiniStatusline.section_searchcount({ trunc_width = 75 })
+
+			return MiniStatusline.combine_groups({
+				{ hl = mode_hl,                 strings = { mode } },
+				-- { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } },
+				'%<', -- Mark general truncate point
+				{ hl = 'MiniStatuslineFilename', strings = { filename } },
+				'%=', -- End left alignment
+				-- { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
+				-- { hl = mode_hl,                  strings = { search, location } },
+				{ hl = mode_hl,                  strings = { search } },
+			})
+		end,
+		inactive = nil,
+	},
+})
+status_line.section_location = function()
 	return "%2l:%-2v"
 end
 
