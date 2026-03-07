@@ -147,12 +147,12 @@ vim.keymap.set('x', 'p', [["_dP]], { noremap = true, silent = true })
 -- Plugins
 local gh_path = "https://github.com/"
 vim.pack.add({
-	{ src = gh_path .. "nvim-tree/nvim-web-devicons" },
+	-- { src = gh_path .. "nvim-tree/nvim-web-devicons" },
 	{ src = gh_path .. "neovim/nvim-lspconfig" },
 	{ src = gh_path .. "echasnovski/mini.statusline" },
 	{ src = gh_path .. "folke/which-key.nvim" },
 	{ src = gh_path .. "ggandor/leap.nvim" },
-	{ src = gh_path .. "tpope/vim-sleuth" }, -- detects file's indentation patterns
+	{ src = gh_path .. "tpope/vim-sleuth" },   -- detects file's indentation patterns
 	{ src = gh_path .. "numToStr/Comment.nvim" }, -- comment selection with "gc"
 	{ src = gh_path .. "lewis6991/gitsigns.nvim" },
 	{ src = gh_path .. "mbbill/undotree" },
@@ -185,16 +185,107 @@ vim.pack.add({
 -- end, {})
 
 --[ Compile Mode
+
+local function load_env_file(path)
+	local env = {}
+
+	if vim.fn.filereadable(path) == 0 then
+		return env
+	end
+
+	for line in io.lines(path) do
+		if line:match("%S") and not line:match("^%s*#") then
+			local key, value = line:match("^%s*([A-Z_][A-Z0-9_]*)%s*=%s*(.+)$")
+
+			if key and value then
+				value = value:match("^%s*(.-)%s*$") -- trim
+
+				local first = value:sub(1, 1)
+
+				if first == '"' or first == "'" then
+					local closing = nil
+
+					for i = 2, #value do
+						if value:sub(i, i) == first and value:sub(i - 1, i - 1) ~= "\\" then
+							closing = i
+							break
+						end
+					end
+
+					if closing then
+						value = value:sub(2, closing - 1) -- inside quotes
+					else
+						value = value:sub(1):match("^(%S+)") -- no closing quote, up to first whitespace
+					end
+				else
+					value = value:match("^(%S+)") -- until whitespace
+				end
+
+				env[key] = value
+			end
+		end
+	end
+
+	return env
+end
+
+local function load_flags_file(path)
+	local flags = ""
+
+	if vim.fn.filereadable(path) == 0 then
+		return flags
+	end
+
+	for line in io.lines(path) do
+		if line:match("%S") and not line:match("^%s*#") then
+			line = line:match("^%s*(.-)%s*$") -- trim
+			flags = flags .. " " .. line
+		end
+	end
+
+	return flags
+end
+
+local cwd = vim.fn.getcwd()
+local compile_mode_flags = ""
+
+-- Nice way to print out stuff for debug
+-- print(vim.inspect(compile_mode_env))
+
+if vim.fn.filereadable(cwd .. "/.flags") == 1 then
+	compile_mode_flags = load_flags_file(cwd .. "/.flags")
+end
+
 ---@module "compile-mode"
 ---@type CompileModeOpts
-vim.g.compile_mode = {
+local compile_mode_opts = {
 	default_command = {
-		c = "gcc -o %:r % && ./%:r",
-		go = "go run .",
+		-- c = "gcc -o %:r %" .. compile_mode_flags .. " && ./%:r",
+		c = "gcc -o qdebug main.c" .. compile_mode_flags .. " && ./qdebug",
+		go = "go run ." .. compile_mode_flags,
 	},
 	bang_expansion = true,
-	focus_compilation_buffer = true,
+	focus_compilation_buffer = false,
+	ask_to_interrupt = false,
 }
+
+if vim.fn.filereadable(cwd .. "/.env") == 1 then
+	compile_mode_opts.environment = load_env_file(cwd .. "/.env")
+end
+
+vim.g.compile_mode = compile_mode_opts
+
+-- Add a custom compile command that opens in a new tab
+vim.api.nvim_create_user_command('CompileNewTab', function()
+	vim.cmd('tabnew ' .. vim.fn.expand('%'))
+	vim.cmd('Compile')
+
+	vim.defer_fn(function()
+		vim.cmd('wincmd k')
+		vim.cmd('quit')
+		-- vim.cmd('tabprevious')
+	end, 500)
+end, { desc = 'Compile and open in a new tab' })
 
 --[ Debugger
 local dap = require("dap")
@@ -272,7 +363,7 @@ vim.lsp.config('roslyn', {
 	cmd = {
 		'dotnet',
 		'/home/joao/apps/roslyn-ls/nupkg/content/LanguageServer/linux-x64/Microsoft.CodeAnalysis.LanguageServer.dll',
-		"--logLevel", -- this property is required by the server
+		"--logLevel",        -- this property is required by the server
 		"Information",
 		"--extensionLogDirectory", -- this property is required by the server
 		vim.fs.joinpath(vim.loop.os_tmpdir(), "roslyn_ls/logs"),
@@ -299,24 +390,24 @@ status_line.setup({
 	content = {
 		active = function()
 			local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
-			local git           = MiniStatusline.section_git({ trunc_width = 40 })
-			local diff          = MiniStatusline.section_diff({ trunc_width = 75 })
-			local diagnostics   = MiniStatusline.section_diagnostics({ trunc_width = 75 })
-			local lsp           = MiniStatusline.section_lsp({ trunc_width = 75 })
+			-- local git           = MiniStatusline.section_git({ trunc_width = 40 })
+			-- local diff          = MiniStatusline.section_diff({ trunc_width = 75 })
+			-- local diagnostics   = MiniStatusline.section_diagnostics({ trunc_width = 75 })
+			-- local lsp           = MiniStatusline.section_lsp({ trunc_width = 75 })
 			local filename      = MiniStatusline.section_filename({ trunc_width = 140 })
-			local fileinfo      = MiniStatusline.section_fileinfo({ trunc_width = 120 })
-			local location      = MiniStatusline.section_location({ trunc_width = 75 })
+			-- local fileinfo      = MiniStatusline.section_fileinfo({ trunc_width = 120 })
+			-- local location      = MiniStatusline.section_location({ trunc_width = 75 })
 			local search        = MiniStatusline.section_searchcount({ trunc_width = 75 })
 
 			return MiniStatusline.combine_groups({
-				{ hl = mode_hl,                 strings = { mode } },
+				{ hl = mode_hl,                  strings = { mode } },
 				-- { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } },
 				'%<', -- Mark general truncate point
 				{ hl = 'MiniStatuslineFilename', strings = { filename } },
 				'%=', -- End left alignment
 				-- { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
 				-- { hl = mode_hl,                  strings = { search, location } },
-				{ hl = mode_hl,                  strings = { search } },
+				{ hl = mode_hl, strings = { search } },
 			})
 		end,
 		inactive = nil,
@@ -365,7 +456,6 @@ which_key.add({
 	{ "<leader><CR>",        hidden = true },
 	{ "<leader><Backspace>", hidden = true },
 	{ "<leader><Up>",        hidden = true },
-	{ "<leader>R",           hidden = true },
 	{ "<leader>e",           hidden = true },
 	{ "<leader>E",           hidden = true },
 	{ "<leader>q",           hidden = true },
@@ -376,7 +466,8 @@ which_key.add({
 })
 
 --[ Editor Keymaps
-vim.keymap.set("n", "<leader>R", ":update<CR>:source<CR>", { desc = "Refresh" })
+-- vim.keymap.set("n", "<leader>R", ":update<CR>:source<CR>", { desc = "Refresh" })
+vim.keymap.set("n", "<leader>R", ":restart<CR>", { desc = "Restart" })
 vim.keymap.set("n", "<leader>w", ":write<CR>", { desc = "Write" })
 vim.keymap.set("n", "<leader>Q", ":quit<CR>", { desc = "Quit" })
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>") -- Clear search highlight
@@ -401,6 +492,8 @@ vim.keymap.set("n", "<leader><Up>", ":NvimTreeToggle<CR>", { desc = "File tree" 
 vim.keymap.set("n", "<leader>co", ":FzfLua colorschemes<CR>", { desc = "Colorschemes" })
 vim.keymap.set("n", "<leader>r", ":FzfLua registers<CR>", { desc = "Registers" })
 vim.keymap.set("n", "<leader>b", ":FzfLua buffers<CR>", { desc = "Buffers" })
+vim.keymap.set("n", "T", ":tabnext<CR>", { desc = "Next tab" })
+vim.keymap.set("n", "<leader>T", ":FzfLua tabs<CR>", { desc = "Tabs" })
 vim.keymap.set("n", "<leader>'", ":FzfLua marks<CR>", { desc = "Marks" })
 
 --[ Git Keymaps
@@ -417,16 +510,17 @@ vim.keymap.set("n", "<leader>dt", function()
 end, { desc = "Toggle breakpoint" })
 -- TODO: Finish setting these up
 
-vim.keymap.set("n", "<leader>dc", ":Compile<CR>", { desc = "Compile" })
+vim.keymap.set("n", "<leader>dc", ":CompileNewTab<CR>", { desc = "Compile" })
+vim.keymap.set("n", "<C-c>", ":CompileNewTab<CR>", { desc = "Compile" })
 vim.keymap.set("n", "<leader>dr", ":Recompile<CR>", { desc = "Recompile" })
 -- Create r keymap local to *compilation* window
 vim.api.nvim_create_autocmd('BufWinEnter', {
 	pattern = '*compilation*',
 	callback = function()
-		vim.cmd("4wincmd -")
-		vim.keymap.set('n', 'r', ':Recompile<cr>', { buffer = true })
-		vim.keymap.set('n', 'q', ':quit', { buffer = true })
-		-- vim.cmd("wincmd w")
+		-- vim.cmd("4wincmd -")
+		vim.keymap.set('n', 'r', ':Recompile<CR>', { buffer = true })
+		vim.keymap.set('n', 's', ':CompileInterrupt<CR>', { buffer = true })
+		vim.keymap.set('n', 'q', ':CompileCloseBuffer<CR>', { buffer = true })
 	end
 })
 
@@ -519,20 +613,20 @@ vim.keymap.set("n", "<C-g>", ":FzfLua live_grep_native resume=true<CR>")
 vim.keymap.set("n", "<C-S-g>", ":FzfLua lgrep_curbuf resume=true<CR>")
 
 -- Colorscheme
-vim.api.nvim_create_autocmd("ColorScheme", {
-	callback = function()
-		-- Your code here runs whenever the colorscheme changes
-		vim.cmd("highlight Normal ctermbg=NONE guibg=NONE")
-		vim.cmd("highlight NonText ctermbg=NONE guibg=NONE")
-		vim.cmd("highlight NormalFloat ctermbg=NONE guibg=NONE")
-		vim.cmd("highlight FloatBorder ctermbg=NONE guibg=NONE")
-		vim.cmd("highlight NormalNC ctermbg=NONE guibg=NONE")
-		vim.cmd("highlight SignColumn ctermbg=NONE guibg=NONE")
-		vim.cmd("highlight EndOfBuffer ctermbg=NONE guibg=NONE")
-		vim.cmd("highlight LineNr ctermbg=NONE guibg=NONE")
-		vim.cmd("highlight CursorLineNr ctermbg=NONE guibg=NONE")
-	end,
-})
+-- vim.api.nvim_create_autocmd("ColorScheme", {
+-- 	callback = function()
+-- 		-- Your code here runs whenever the colorscheme changes
+-- 		vim.cmd("highlight Normal ctermbg=NONE guibg=NONE")
+-- 		vim.cmd("highlight NonText ctermbg=NONE guibg=NONE")
+-- 		vim.cmd("highlight NormalFloat ctermbg=NONE guibg=NONE")
+-- 		vim.cmd("highlight FloatBorder ctermbg=NONE guibg=NONE")
+-- 		vim.cmd("highlight NormalNC ctermbg=NONE guibg=NONE")
+-- 		vim.cmd("highlight SignColumn ctermbg=NONE guibg=NONE")
+-- 		vim.cmd("highlight EndOfBuffer ctermbg=NONE guibg=NONE")
+-- 		vim.cmd("highlight LineNr ctermbg=NONE guibg=NONE")
+-- 		vim.cmd("highlight CursorLineNr ctermbg=NONE guibg=NONE")
+-- 	end,
+-- })
 
 require("kanagawa").setup({
 	transparent = true,
