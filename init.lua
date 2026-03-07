@@ -1,3 +1,5 @@
+vim.g.mapleader = " "
+
 -- Greeter
 
 vim.api.nvim_create_autocmd("VimEnter", {
@@ -145,6 +147,12 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 vim.keymap.set('x', 'p', [["_dP]], { noremap = true, silent = true })
 
 -- Plugins
+
+--[ Mine
+require('jiumplist')
+require('jiuscratch')
+
+--[ Others
 local gh_path = "https://github.com/"
 vim.pack.add({
 	-- { src = gh_path .. "nvim-tree/nvim-web-devicons" },
@@ -447,7 +455,6 @@ which_key.setup({
 })
 
 -- Keymaps
-vim.g.mapleader = " "
 which_key.add({
 	{ "<leader>t",           group = "toggle" },
 	{ "<leader>d",           group = "debug" },
@@ -463,6 +470,8 @@ which_key.add({
 	{ "<leader>w",           hidden = true },
 	{ "<leader>n",           hidden = true },
 	{ "<leader>f",           hidden = true },
+	{ "<C-x>",               hidden = true },
+	{ "v",                   hidden = true },
 })
 
 --[ Editor Keymaps
@@ -491,9 +500,12 @@ vim.keymap.set("n", "<leader>u", ":UndotreeToggle<CR><C-w>w", { desc = "Undo tre
 vim.keymap.set("n", "<leader><Up>", ":NvimTreeToggle<CR>", { desc = "File tree" })
 vim.keymap.set("n", "<leader>co", ":FzfLua colorschemes<CR>", { desc = "Colorschemes" })
 vim.keymap.set("n", "<leader>r", ":FzfLua registers<CR>", { desc = "Registers" })
+
 vim.keymap.set("n", "<leader>b", ":FzfLua buffers<CR>", { desc = "Buffers" })
+
 vim.keymap.set("n", "T", ":tabnext<CR>", { desc = "Next tab" })
 vim.keymap.set("n", "<leader>T", ":FzfLua tabs<CR>", { desc = "Tabs" })
+
 vim.keymap.set("n", "<leader>'", ":FzfLua marks<CR>", { desc = "Marks" })
 
 --[ Git Keymaps
