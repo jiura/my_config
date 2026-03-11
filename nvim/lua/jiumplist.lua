@@ -2,8 +2,8 @@
 local buf_history = {}
 local buf_history_index = 0
 local last_move_was_switch = false
+
 function SwitchBuffer(direction)
-	last_move_was_switch = true
 	local num_bufs = #buf_history
 
 	if direction == -1 and buf_history_index == 1 then return end
@@ -20,6 +20,7 @@ function SwitchBuffer(direction)
 	-- Get the buffer to switch to
 	local buf_to_switch = buf_history[buf_history_index]
 	vim.api.nvim_command('buffer ' .. buf_to_switch)
+	last_move_was_switch = true
 end
 
 -- Add current buffer to history when switching buffers
