@@ -19,8 +19,8 @@ function SwitchBuffer(direction)
 
 	-- Get the buffer to switch to
 	local buf_to_switch = buf_history[buf_history_index]
-	vim.api.nvim_command('buffer ' .. buf_to_switch)
 	last_move_was_switch = true
+	vim.api.nvim_command('buffer ' .. buf_to_switch)
 end
 
 -- Add current buffer to history when switching buffers
@@ -33,17 +33,31 @@ vim.api.nvim_create_autocmd("BufEnter", {
 			return
 		end
 
-		local current_buf = vim.fn.bufnr()
+		local cur_index = buf_history_index + 1
+		while #buf_history > cur_index do
+			table.remove(buf_history, cur_index)
+			cur_index = cur_index + 1
+		end
 
-		if not vim.tbl_contains(buf_history, current_buf) then
+		local cur_buf = vim.fn.bufnr()
+
+		local existing_index = nil
+		for i, buf in ipairs(buf_history) do
+			if buf == cur_buf then
+				existing_index = i
+				break
+			end
+		end
+
+		if not existing_index then
 			if #buf_history >= 8 then
 				table.remove(buf_history, 1) -- Remove the first (oldest) item
 			end
 		else
-			table.remove(buf_history, buf_history_index)
+			table.remove(buf_history, existing_index)
 		end
 
-		table.insert(buf_history, current_buf)
+		table.insert(buf_history, cur_buf)
 		buf_history_index = #buf_history
 	end
 })
