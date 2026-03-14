@@ -1,3 +1,21 @@
-UseTab: Always
-IndentWidth: 4
-TabWidth: 4
+# UseTab: Always
+# PenaltyBreakBeforeFirstCallParameter: 10000
+
+Language: C
+BasedOnStyle: llvm
+
+IndentWidth: 4                              # Set indentation to 4 spaces
+# TabWidth: 4                                 # Set tab width to 4 spaces
+ColumnLimit: 0                              # Don't wrap lines, leave it wide open
+AlignConsecutiveAssignments: true           # Don't align assignment operators
+AlignConsecutiveDeclarations: true          # Same for declarations
+AlignAfterOpenBracket: Align                # Align parameters after opening bracket for readability
+
+# AllowShortIfStatementsOnASingleLine: true
+# AllowShortLoopsOnASingleLine: true
+#
+AlignTrailingComments: true                 # Align trailing comments properly
+#
+# PointerAlignment: Right
+#
+SortIncludes: false # This sorting messes up unity builds
