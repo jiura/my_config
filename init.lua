@@ -128,8 +128,12 @@ vim.o.ignorecase = true -- Case-insensitive searching unless \C or one or more c
 vim.o.smartcase = true
 
 -- Internals
-vim.o.updatetime = 250
-vim.o.timeoutlen = 300
+vim.o.updatetime = 4000
+vim.o.timeoutlen = 400
+vim.o.timeout = true
+
+-- vim.o.ttimeout = false
+-- vim.o.ttimeoutlen = 0
 
 -- Basic Typing
 vim.o.whichwrap = "<>[]hl"
@@ -254,8 +258,24 @@ local function load_flags_file(path)
 	return flags
 end
 
+local function load_compilecmd_file(path)
+	local cmd = ""
+
+	if vim.fn.filereadable(path) == 0 then
+		return cmd
+	end
+
+	for line in io.lines(path) do
+		line = line:match("^%s*(.-)%s*$") -- trim
+		cmd = cmd .. " " .. line
+	end
+
+	return cmd:match("^%s*(.-)%s*$") -- trim
+end
+
 local cwd = vim.fn.getcwd()
 local compile_mode_flags = ""
+local compile_cmd = ""
 
 -- Nice way to print out stuff for debug
 -- print(vim.inspect(compile_mode_env))
@@ -264,14 +284,27 @@ if vim.fn.filereadable(cwd .. "/.flags") == 1 then
 	compile_mode_flags = load_flags_file(cwd .. "/.flags")
 end
 
----@module "compile-mode"
----@type CompileModeOpts
-local compile_mode_opts = {
-	default_command = {
+if vim.fn.filereadable(cwd .. "/.compilecmd") == 1 then
+	compile_cmd = load_compilecmd_file(cwd .. "/.compilecmd")
+end
+
+local default_cmd
+
+if compile_cmd == "" then
+	default_cmd = {
 		-- c = "gcc -o %:r %" .. compile_mode_flags .. " && ./%:r",
 		c = "gcc -o qdebug main.c" .. compile_mode_flags .. " && ./qdebug",
 		go = "go run ." .. compile_mode_flags,
-	},
+		csharp = "dotnet run",
+	}
+else
+	default_cmd = compile_cmd
+end
+
+---@module "compile-mode"
+---@type CompileModeOpts
+local compile_mode_opts = {
+	default_command = default_cmd,
 	bang_expansion = true,
 	focus_compilation_buffer = false,
 	ask_to_interrupt = false,
@@ -292,7 +325,7 @@ vim.api.nvim_create_user_command('CompileNewTab', function()
 		vim.cmd('wincmd k')
 		vim.cmd('quit')
 		-- vim.cmd('tabprevious')
-	end, 500)
+	end, 1)
 end, { desc = 'Compile and open in a new tab' })
 
 --[ Debugger
@@ -455,6 +488,9 @@ which_key.setup({
 })
 
 -- Keymaps
+vim.api.nvim_set_keymap('n', '<C-x>', '', { noremap = true, silent = true })
+-- vim.api.nvim_set_keymap('n', '<C-x><Esc>', '', { noremap = true, silent = true })
+
 which_key.add({
 	{ "<leader>t",           group = "toggle" },
 	{ "<leader>d",           group = "debug" },
@@ -466,8 +502,8 @@ which_key.add({
 	{ "<leader>e",           hidden = true },
 	{ "<leader>E",           hidden = true },
 	{ "<leader>q",           hidden = true },
-	{ "<leader>Q",           hidden = true },
 	{ "<leader>w",           hidden = true },
+	{ "<leader>Q",           hidden = true },
 	{ "<leader>n",           hidden = true },
 	{ "<leader>f",           hidden = true },
 	{ "<C-x>",               hidden = true },
@@ -476,8 +512,10 @@ which_key.add({
 
 --[ Editor Keymaps
 -- vim.keymap.set("n", "<leader>R", ":update<CR>:source<CR>", { desc = "Refresh" })
-vim.keymap.set("n", "<leader>R", ":restart<CR>", { desc = "Restart" })
+vim.keymap.set("n", "<C-x><C-r>", ":restart<CR>", { noremap = true, desc = "Restart" })
 vim.keymap.set("n", "<leader>w", ":write<CR>", { desc = "Write" })
+vim.keymap.set("n", "<C-s>", ":write<CR>", { desc = "Write" })
+-- vim.keymap.set("n", "<leader>Q", ":quit<CR>", { desc = "Quit" })
 vim.keymap.set("n", "<leader>Q", ":quit<CR>", { desc = "Quit" })
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>") -- Clear search highlight
 
@@ -529,7 +567,6 @@ vim.keymap.set("n", "<leader>dr", ":Recompile<CR>", { desc = "Recompile" })
 vim.api.nvim_create_autocmd('BufWinEnter', {
 	pattern = '*compilation*',
 	callback = function()
-		-- vim.cmd("4wincmd -")
 		vim.keymap.set('n', 'r', ':Recompile<CR>', { buffer = true })
 		vim.keymap.set('n', 's', ':CompileInterrupt<CR>', { buffer = true })
 		vim.keymap.set('n', 'q', ':CompileCloseBuffer<CR>', { buffer = true })
@@ -623,6 +660,10 @@ vim.keymap.set("i", "<C-Down>", [[<C-o>:keepjumps normal! }<CR>]], { silent = tr
 vim.keymap.set("n", "<C-f>", ":FzfLua files<CR>")
 vim.keymap.set("n", "<C-g>", ":FzfLua live_grep_native resume=true<CR>")
 vim.keymap.set("n", "<C-S-g>", ":FzfLua lgrep_curbuf resume=true<CR>")
+
+--[ Insert mode keymaps
+vim.keymap.set("i", "<C-c>", "<C-o>")
+vim.keymap.set("i", "<C-z>", "<C-o>u") -- undo
 
 -- Colorscheme
 -- vim.api.nvim_create_autocmd("ColorScheme", {
