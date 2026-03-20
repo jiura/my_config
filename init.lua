@@ -546,6 +546,10 @@ vim.keymap.set("n", "<leader>T", ":FzfLua tabs<CR>", { desc = "Tabs" })
 
 vim.keymap.set("n", "<leader>'", ":FzfLua marks<CR>", { desc = "Marks" })
 
+---[ Move selected lines
+vim.api.nvim_set_keymap('v', '<C-S-Up>', ":m '<-2<CR>gv=gv", { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<C-S-Down>', ":m '>+1<CR>gv=gv", { noremap = true, silent = true })
+
 --[ Git Keymaps
 vim.keymap.set("n", "<leader>gs", ":FzfLua git_status<CR>", { desc = "Status" })
 vim.keymap.set("n", "<leader>gd", ":FzfLua git_diff<CR>", { desc = "Diff" })
@@ -664,6 +668,7 @@ vim.keymap.set("n", "<C-S-g>", ":FzfLua lgrep_curbuf resume=true<CR>")
 --[ Insert mode keymaps
 vim.keymap.set("i", "<C-c>", "<C-o>")
 vim.keymap.set("i", "<C-z>", "<C-o>u") -- undo
+vim.keymap.set("i", "<C-Del>", "<C-o>dw") -- delete next work
 
 -- Colorscheme
 -- vim.api.nvim_create_autocmd("ColorScheme", {
