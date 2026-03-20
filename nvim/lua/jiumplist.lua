@@ -30,7 +30,6 @@ local function jump_to_prev_buffer()
   if n > 0 then
     -- Jumps back n times
     press_keys(n .. "<C-o>", 'n')
-	print("Jump backwards " .. n .. "times")
   else
     print("No previous buffer in jumplist.")
   end
@@ -69,7 +68,6 @@ local function jump_to_next_buffer()
 
 	-- Jumps forward n times
     press_keys(n .. "<C-i>", 'n')
-	print("Jump forward " .. n .. "times")
   else
     print("No next buffer found in jumplist.")
   end
