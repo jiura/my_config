@@ -1,86 +1,89 @@
--- Function to switch buffers based on history
-local buf_history = {}
-local buf_history_index = 0
-local last_move_was_switch = false
-
-function SwitchBuffer(direction)
-	local num_bufs = #buf_history
-
-	if direction == -1 and buf_history_index == 1 then return end
-	if direction == 1 and buf_history_index == num_bufs then return end
-
-	if direction == 1 then
-		-- Going forward
-		buf_history_index = buf_history_index + 1
-	else
-		-- Going backward
-		buf_history_index = buf_history_index - 1
-	end
-
-	-- Get the buffer to switch to
-	local buf_to_switch = buf_history[buf_history_index]
-	last_move_was_switch = true
-	vim.api.nvim_command('buffer ' .. buf_to_switch)
+-- Safeguarding against table.unpack not existing
+if not table.unpack then
+    table.unpack = unpack
 end
 
--- Add current buffer to history when switching buffers
--- Add buffer to history when entering it
-vim.api.nvim_create_autocmd("BufEnter", {
-	pattern = "*",
-	callback = function()
-		if last_move_was_switch then
-			last_move_was_switch = false
-			return
-		end
+-- Helper
+local function press_keys(keys, mode)
+  -- Replace terminal codes (e.g., "<Esc>") with the actual codes
+  local termcodes = vim.api.nvim_replace_termcodes(keys, true, false, true)
+  -- Feed the keys to Neovim
+  vim.api.nvim_feedkeys(termcodes, mode, false)
+end
 
-		local cur_index = buf_history_index + 1
-		while #buf_history > cur_index do
-			table.remove(buf_history, cur_index)
-			cur_index = cur_index + 1
-		end
+local function jump_to_prev_buffer()
+  local jumplist, idx = table.unpack(vim.fn.getjumplist())
+  local current_buf = vim.api.nvim_get_current_buf()
 
-		local cur_buf = vim.fn.bufnr()
+  local n = 0
 
-		local existing_index = nil
-		for i, buf in ipairs(buf_history) do
-			if buf == cur_buf then
-				existing_index = i
-				break
-			end
-		end
+  -- Loop backwards through the jumplist
+  for i = idx - 1, 1, -1 do
+    local entry = jumplist[i]
 
-		if not existing_index then
-			if #buf_history >= 8 then
-				table.remove(buf_history, 1) -- Remove the first (oldest) item
-			end
-		else
-			table.remove(buf_history, existing_index)
-		end
+    if entry.bufnr ~= current_buf then
+      n = idx - i + 1
+      break
+    end
+  end
 
-		table.insert(buf_history, cur_buf)
-		buf_history_index = #buf_history
+  if n > 0 then
+    -- Jumps back n times
+    press_keys(n .. "<C-o>", 'n')
+	print("Jump backwards " .. n .. "times")
+  else
+    print("No previous buffer in jumplist.")
+  end
+end
+
+local function jump_to_next_buffer()
+  local jumplist, idx = table.unpack(vim.fn.getjumplist())
+  local current_buf = vim.api.nvim_get_current_buf()
+
+  local target_buf = nil
+  local last_index = nil
+
+  -- Loop forward through the jumplist
+  for i = idx + 1, #jumplist do
+    local entry = jumplist[i]
+
+    if not target_buf then
+      -- Find the first jump to next buffer
+      if entry.bufnr ~= current_buf then
+        target_buf = entry.bufnr
+        last_index = i
+      end
+    else
+      -- Updating last_index while still on target buffer
+      if entry.bufnr == target_buf then
+        last_index = i
+      else
+        -- Reached a new buffer; stop
+        break
+      end
+    end
+  end
+
+  if last_index then
+    local n = last_index - idx - 1
+
+	-- Jumps forward n times
+    press_keys(n .. "<C-i>", 'n')
+	print("Jump forward " .. n .. "times")
+  else
+    print("No next buffer found in jumplist.")
+  end
+end
+
+function SwitchBuffer(direction)
+	if direction == 1 then
+		-- Going forward
+		jump_to_next_buffer()
+	else
+		-- Going backward
+		jump_to_prev_buffer()
 	end
-})
-
--- Remove buffer from history when it is deleted
-vim.api.nvim_create_autocmd("BufDelete", {
-	pattern = "*",
-	callback = function()
-		local cur_buf = vim.fn.bufnr()
-
-		for i, buf in ipairs(buf_history) do
-			if buf == cur_buf then
-				table.remove(buf_history, i)
-
-				if i <= buf_history_index then
-					buf_history_index = buf_history_index - 1
-				end
-
-				break
-			end
-		end
-	end
-})
+end
 
 vim.keymap.set("n", "<C-x><Left>", ":lua SwitchBuffer(-1)<CR>", { desc = "Previous buffer", silent = true })
 vim.keymap.set("n", "<C-x><Right>", ":lua SwitchBuffer(1)<CR>", { desc = "Next buffer", silent = true })
