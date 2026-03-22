@@ -22,7 +22,7 @@ local function jump_to_prev_buffer()
     local entry = jumplist[i]
 
     if entry.bufnr ~= current_buf then
-      n = idx - i + 1
+      n = idx - i
       break
     end
   end
@@ -31,7 +31,7 @@ local function jump_to_prev_buffer()
     -- Jumps back n times
     press_keys(n .. "<C-o>", 'n')
   else
-    print("No previous buffer in jumplist.")
+    print("No previous buffer in jumplist")
   end
 end
 
@@ -69,7 +69,7 @@ local function jump_to_next_buffer()
 	-- Jumps forward n times
     press_keys(n .. "<C-i>", 'n')
   else
-    print("No next buffer found in jumplist.")
+    print("No next buffer found in jumplist")
   end
 end
 
