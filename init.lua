@@ -324,9 +324,19 @@ vim.api.nvim_create_user_command('CompileNewTab', function()
 	vim.defer_fn(function()
 		vim.cmd('wincmd k')
 		vim.cmd('quit')
-		-- vim.cmd('tabprevious')
 	end, 1)
 end, { desc = 'Compile and open in a new tab' })
+
+-- Add a custom compile command that opens in a new vertical split
+vim.api.nvim_create_user_command('CompileVSplit', function()
+	vim.cmd('vs')
+	vim.cmd('Compile')
+
+	vim.defer_fn(function()
+		vim.cmd('wincmd k')
+		vim.cmd('quit')
+	end, 1)
+end, { desc = 'Compile and open in a new vertical split' })
 
 --[ Debugger
 local dap = require("dap")
@@ -565,7 +575,8 @@ end, { desc = "Toggle breakpoint" })
 -- TODO: Finish setting these up
 
 vim.keymap.set("n", "<leader>dc", ":CompileNewTab<CR>", { desc = "Compile" })
-vim.keymap.set("n", "<C-c>", ":CompileNewTab<CR>", { desc = "Compile" })
+vim.keymap.set("n", "<C-c>", ":CompileNewTab<CR>", { desc = "Compile in new tab" })
+vim.keymap.set("n", "<C-S-c>", ":CompileVSplit<CR>", { desc = "Compile in vsplit" })
 vim.keymap.set("n", "<leader>dr", ":Recompile<CR>", { desc = "Recompile" })
 -- Create r keymap local to *compilation* window
 vim.api.nvim_create_autocmd('BufWinEnter', {
