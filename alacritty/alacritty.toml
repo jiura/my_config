@@ -8,7 +8,7 @@ import = [
 ]
 
 [font]
-size = 14.0
+size = 18.0
 
 [font.normal]
 family = "Agave Nerd Font Propo"
@@ -33,11 +33,13 @@ bindings = [
   { key = "6", mods = "Control", chars = "\uE006" },
   { key = "7", mods = "Control", chars = "\uE007" },
   { key = "8", mods = "Control", chars = "\uE008" },
-  { key = "9", mods = "Control", chars = "\uE009" }
+  { key = "9", mods = "Control", chars = "\uE009" },
+  { key = "C", mods = "Control|Shift", chars = "\u001b[67;5u" }
 ]
 
 [window]
-opacity = 0.8
+# opacity = 0.85
+opacity = 1
 
 [mouse]
 hide_when_typing = true
